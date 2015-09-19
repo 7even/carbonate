@@ -1,3 +1,4 @@
+require 'carbonate/parser'
 require 'carbonate/version'
 
 module Carbonate
