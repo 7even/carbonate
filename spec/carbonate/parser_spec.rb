@@ -32,6 +32,20 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
+  context 'with arrays' do
+    let(:source) { '[1 2 3]' }
+
+    it 'parses the source into AST' do
+      expect(subject.parse(source)).to eq(
+        s(:array,
+          s(:int, 1),
+          s(:int, 2),
+          s(:int, 3)
+        )
+      )
+    end
+  end
+
   context 'with a class definition' do
     let(:source) do
       <<-CRB

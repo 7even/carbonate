@@ -56,12 +56,33 @@ module Carbonate
     end
 
     # outermost scope
-    rule 'source : sexps S | sexps' do |source, sexps|
-      source.value = if sexps.value.one?
-        sexps.value.first
+    rule 'source : forms S | forms' do |source, forms|
+      source.value = if forms.value.one?
+        forms.value.first
       else
-        s(:begin, sexps.value)
+        s(:begin, forms.value)
       end
+    end
+
+    # multiple forms
+    rule 'forms : forms S form | form' do |forms, *forms_array|
+      forms.value = without_spaces(forms_array).flat_map(&:value)
+    end
+
+    # form can be a local variable
+    rule 'form : LVAR' do |form, lvar|
+      form.value = s(:lvar, [lvar.value])
+    end
+
+    # form can also be an instance variable, a number, an array or an S-expression
+    rule 'form : IVAR | NUMBER | array | sexp' do |form, element|
+      form.value = element.value
+    end
+
+    # array
+    # [1 2 3]
+    rule 'array : "[" forms "]"' do |array, _, sexps, _|
+      array.value = s(:array, sexps.value)
     end
 
     # multiple S-expressions
@@ -92,21 +113,6 @@ module Carbonate
     # (def age 30)
     rule 'sexp : "(" DEF S IVAR S form ")"' do |sexp, _, _, _, var_name, _, form, _|
       sexp.value = s(:ivasgn, [var_name.value, form.value])
-    end
-
-    # multiple forms
-    rule 'forms : forms S form | form' do |forms, *forms_array|
-      forms.value = without_spaces(forms_array).flat_map(&:value)
-    end
-
-    # form can be a local variable
-    rule 'form : LVAR' do |form, lvar|
-      form.value = s(:lvar, [lvar.value])
-    end
-
-    # form can also be an instance variable, a number or an S-expression
-    rule 'form : IVAR | NUMBER | sexp' do |form, element|
-      form.value = element.value
     end
 
     # method arguments list (in method definition)
