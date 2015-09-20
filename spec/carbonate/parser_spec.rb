@@ -11,25 +11,21 @@ RSpec.describe Carbonate::Parser do
 
     it 'parses the source into AST' do
       expect(subject.parse(basic)).to eq(
-        s(:begin,
-          s(:send,
-            s(:int, 2),
-            :+,
-            s(:int, 2)
-          )
+        s(:send,
+          s(:int, 2),
+          :+,
+          s(:int, 2)
         )
       )
 
       expect(subject.parse(nested)).to eq(
-        s(:begin,
+        s(:send,
+          s(:int, 2),
+          :+,
           s(:send,
-            s(:int, 2),
-            :+,
-            s(:send,
-              s(:int, 3),
-              :*,
-              s(:int, 4)
-            )
+            s(:int, 3),
+            :*,
+            s(:int, 4)
           )
         )
       )
@@ -48,20 +44,18 @@ RSpec.describe Carbonate::Parser do
 
     it 'parses the source into AST' do
       expect(subject.parse(source)).to eq(
-        s(:begin,
-          s(:class,
-            s(:const, nil, :User),
-            nil,
-            s(:def,
-              :initialize,
-              s(:args,
-                s(:arg, :first_name),
-                s(:arg, :last_name)
-              ),
-              s(:begin,
-                s(:ivasgn, :@first_name, s(:lvar, :first_name)),
-                s(:ivasgn, :@last_name, s(:lvar, :last_name))
-              )
+        s(:class,
+          s(:const, nil, :User),
+          nil,
+          s(:def,
+            :initialize,
+            s(:args,
+              s(:arg, :first_name),
+              s(:arg, :last_name)
+            ),
+            s(:begin,
+              s(:ivasgn, :@first_name, s(:lvar, :first_name)),
+              s(:ivasgn, :@last_name, s(:lvar, :last_name))
             )
           )
         )

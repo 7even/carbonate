@@ -5,8 +5,8 @@ require 'parser/ast/node'
 module Carbonate
   class Parser < Rly::Yacc
     def without_spaces(elements)
-      elements.reject do |arg|
-        arg.type == :S
+      elements.reject do |element|
+        element.type == :S
       end
     end
 
@@ -57,7 +57,11 @@ module Carbonate
 
     # outermost scope
     rule 'source : sexps S | sexps' do |source, sexps|
-      source.value = s(:begin, sexps.value)
+      source.value = if sexps.value.one?
+        sexps.value.first
+      else
+        s(:begin, sexps.value)
+      end
     end
 
     # multiple S-expressions
