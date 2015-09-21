@@ -109,6 +109,24 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
+  context 'with sets' do
+    let(:source) { '#{123 "string" :symbol}' }
+
+    it 'parses the source into AST' do
+      expect(subject.parse(source)).to eq(
+        s(:send,
+          s(:const, nil, :Set),
+          :new,
+          s(:array,
+            s(:int, 123),
+            s(:str, 'string'),
+            s(:sym, :symbol)
+          )
+        )
+      )
+    end
+  end
+
   context 'with basic arithmetic' do
     let(:basic)  { '(+ 2 2)' }
     let(:nested) { '(+ 2 (* 3 4))' }

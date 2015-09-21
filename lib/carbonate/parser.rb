@@ -29,7 +29,7 @@ module Carbonate
     end
 
     lexer do
-      literals '+-*/()[]{}'
+      literals '+-*/()[]{}#'
 
       token :FLOAT, /\d+\.\d+/ do |t|
         t.value = Parser.s(:float, [t.value.to_f])
@@ -110,7 +110,7 @@ module Carbonate
     end
 
     # form can also be an instance variable, an S-expression, a literal value or a collection of those
-    rule 'form : IVAR | INTEGER | FLOAT | STRING | SYMBOL | REGEXP | array | hash | sexp' do |form, element|
+    rule 'form : IVAR | INTEGER | FLOAT | STRING | SYMBOL | REGEXP | array | hash | set | sexp' do |form, element|
       form.value = element.value
     end
 
@@ -128,6 +128,18 @@ module Carbonate
 
       pairs = forms.value.each_slice(2).map { |pair| s(:pair, pair) }
       hash.value = s(:hash, pairs)
+    end
+
+    # set
+    # #{123 "string" :symbol}
+    rule 'set : "#" "{" forms "}"' do |set, _, _, forms, _|
+      set.value = s(:send,
+        [
+          s(:const, [nil, :Set]),
+          :new,
+          s(:array, forms.value)
+        ]
+      )
     end
 
     # multiple S-expressions
