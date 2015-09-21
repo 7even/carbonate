@@ -46,6 +46,33 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
+  context 'with a method definition' do
+    let(:source) do
+      <<-CRB
+(defmethod full-name []
+  (join [first-name last-name]))
+      CRB
+    end
+
+    it 'parses the source into AST' do
+      expect(subject.parse(source)).to eq(
+        s(:def,
+          :full_name,
+          s(:args),
+          s(:begin,
+            s(:send,
+              s(:array,
+                s(:lvar, :first_name),
+                s(:lvar, :last_name)
+              ),
+              :join
+            )
+          )
+        )
+      )
+    end
+  end
+
   context 'with a class definition' do
     let(:source) do
       <<-CRB

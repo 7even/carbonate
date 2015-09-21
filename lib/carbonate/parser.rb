@@ -132,11 +132,13 @@ module Carbonate
     end
 
     # empty rule
-    rule('empty :') {}
+    rule('empty :') do |empty|
+      empty.value = []
+    end
 
     # function/method (may be operator)
-    rule 'func : "+" | "-" | "*" | "/"' do |func, operator|
-      func.value = operator.value.to_sym
+    rule 'func : "+" | "-" | "*" | "/" | LVAR' do |func, function|
+      func.value = function.value.to_sym
     end
   end
 end
