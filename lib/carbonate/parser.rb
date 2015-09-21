@@ -14,15 +14,50 @@ module Carbonate
       self.class.s(type, children)
     end
 
-    def self.s(type, children)
+    def self.s(type, children = [])
       ::Parser::AST::Node.new(type, children)
+    end
+
+    def self.handle_string(string, range)
+      replacements = {
+        '\\n' => "\n",
+        '\\r' => "\r",
+        '\\t' => "\t",
+        '\\"' => '"'
+      }
+      string[range].gsub(/\\[nrt"]/, replacements)
     end
 
     lexer do
       literals '+-*/()[]'
 
-      token :NUMBER, /\d+/ do |t|
+      token :FLOAT, /\d+\.\d+/ do |t|
+        t.value = Parser.s(:float, [t.value.to_f])
+        t
+      end
+
+      token :INTEGER, /\d+/ do |t|
         t.value = Parser.s(:int, [t.value.to_i])
+        t
+      end
+
+      token :SYMBOL, /:[A-Za-z0-9_-]+/ do |t|
+        t.value = Parser.s(:sym, [t.value[1..-1].gsub('-', '_').to_sym])
+        t
+      end
+
+      token :REGEXP, /#"([^"\\]|\\[nrt"])*"/ do |t|
+        t.value = Parser.s(:regexp,
+          [
+            Parser.s(:str, [Parser.handle_string(t.value, 2..-2)]),
+            Parser.s(:regopt)
+          ]
+        )
+        t
+      end
+
+      token :STRING, /"([^"\\]|\\[nrt"])*"/ do |t|
+        t.value = Parser.s(:str, [Parser.handle_string(t.value, 1..-2)])
         t
       end
 
@@ -39,12 +74,12 @@ module Carbonate
       end
 
       token :LVAR, /[a-z][A-Za-z0-9_-]*/ do |t|
-        t.value = t.value.gsub(/-/, '_').to_sym
+        t.value = t.value.gsub('-', '_').to_sym
         t
       end
 
       token :IVAR, /@[a-z][A-Za-z0-9_-]*/ do |t|
-        t.value = t.value.gsub(/-/, '_').to_sym
+        t.value = t.value.gsub('-', '_').to_sym
         t
       end
 
@@ -75,7 +110,7 @@ module Carbonate
     end
 
     # form can also be an instance variable, a number, an array or an S-expression
-    rule 'form : IVAR | NUMBER | array | sexp' do |form, element|
+    rule 'form : IVAR | INTEGER | FLOAT | STRING | SYMBOL | REGEXP | array | sexp' do |form, element|
       form.value = element.value
     end
 

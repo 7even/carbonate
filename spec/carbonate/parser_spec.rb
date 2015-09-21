@@ -32,6 +32,67 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
+  context 'with numbers' do
+    context 'integer' do
+      let(:source) { '1' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(s(:int, 1))
+      end
+    end
+
+    context 'float' do
+      let(:source) { '3.14' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(s(:float, 3.14))
+      end
+    end
+  end
+
+  context 'with strings' do
+    context 'without escaped characters' do
+      let(:source) { '"some string"' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(s(:str, 'some string'))
+      end
+    end
+
+    context 'with escaped characters' do
+      let(:source) { '"line1\nline2\rline3\tline4 \'single-quoted text\' \"double-quoted text\""' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(
+          s(:str,
+            "line1\nline2\rline3\tline4 'single-quoted text' \"double-quoted text\""
+          )
+        )
+      end
+    end
+  end
+
+  context 'with symbols' do
+    let(:source) { ':some-symbol' }
+
+    it 'parses the source into AST' do
+      expect(subject.parse(source)).to eq(s(:sym, :some_symbol))
+    end
+  end
+
+  context 'with regexps' do
+    let(:source) { '#"[A-Za-z]+"' }
+
+    it 'parses the source into AST' do
+      expect(subject.parse(source)).to eq(
+        s(:regexp,
+          s(:str, '[A-Za-z]+'),
+          s(:regopt)
+        )
+      )
+    end
+  end
+
   context 'with arrays' do
     let(:source) { '[1 2 3]' }
 
