@@ -5,33 +5,6 @@ RSpec.describe Carbonate::Parser do
     Parser::AST::Node.new(type, children)
   end
 
-  context 'with basic arithmetic' do
-    let(:basic)  { '(+ 2 2)' }
-    let(:nested) { '(+ 2 (* 3 4))' }
-
-    it 'parses the source into AST' do
-      expect(subject.parse(basic)).to eq(
-        s(:send,
-          s(:int, 2),
-          :+,
-          s(:int, 2)
-        )
-      )
-
-      expect(subject.parse(nested)).to eq(
-        s(:send,
-          s(:int, 2),
-          :+,
-          s(:send,
-            s(:int, 3),
-            :*,
-            s(:int, 4)
-          )
-        )
-      )
-    end
-  end
-
   context 'with numbers' do
     context 'integer' do
       let(:source) { '1' }
@@ -102,6 +75,33 @@ RSpec.describe Carbonate::Parser do
           s(:int, 1),
           s(:int, 2),
           s(:int, 3)
+        )
+      )
+    end
+  end
+
+  context 'with basic arithmetic' do
+    let(:basic)  { '(+ 2 2)' }
+    let(:nested) { '(+ 2 (* 3 4))' }
+
+    it 'parses the source into AST' do
+      expect(subject.parse(basic)).to eq(
+        s(:send,
+          s(:int, 2),
+          :+,
+          s(:int, 2)
+        )
+      )
+
+      expect(subject.parse(nested)).to eq(
+        s(:send,
+          s(:int, 2),
+          :+,
+          s(:send,
+            s(:int, 3),
+            :*,
+            s(:int, 4)
+          )
         )
       )
     end
