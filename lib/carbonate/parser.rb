@@ -29,7 +29,7 @@ module Carbonate
     end
 
     lexer do
-      literals '+-*/()[]'
+      literals '+-*/()[]{}'
 
       token :FLOAT, /\d+\.\d+/ do |t|
         t.value = Parser.s(:float, [t.value.to_f])
@@ -61,8 +61,8 @@ module Carbonate
         t
       end
 
-      # whitespace
-      token :S, /\s+/
+      # characters treated as whitespace
+      token :S, /[\s,]+/
 
       token :DEFCLASS,  /defclass/
       token :DEFMETHOD, /defmethod/
@@ -109,8 +109,8 @@ module Carbonate
       form.value = s(:lvar, [lvar.value])
     end
 
-    # form can also be an instance variable, a number, an array or an S-expression
-    rule 'form : IVAR | INTEGER | FLOAT | STRING | SYMBOL | REGEXP | array | sexp' do |form, element|
+    # form can also be an instance variable, an S-expression, a literal value or a collection of those
+    rule 'form : IVAR | INTEGER | FLOAT | STRING | SYMBOL | REGEXP | array | hash | sexp' do |form, element|
       form.value = element.value
     end
 
@@ -118,6 +118,16 @@ module Carbonate
     # [1 2 3]
     rule 'array : "[" forms "]"' do |array, _, sexps, _|
       array.value = s(:array, sexps.value)
+    end
+
+    # hash
+    # {:first-name "Rich", :last-name "Hickey"}
+    # commas are optional, elements count must be even
+    rule 'hash : "{" forms "}"' do |hash, _, forms, _|
+      raise FormatError.new('Odd number of elements in a hash') if forms.value.count.odd?
+
+      pairs = forms.value.each_slice(2).map { |pair| s(:pair, pair) }
+      hash.value = s(:hash, pairs)
     end
 
     # multiple S-expressions
@@ -175,5 +185,7 @@ module Carbonate
     rule 'func : "+" | "-" | "*" | "/" | LVAR' do |func, function|
       func.value = function.value.to_sym
     end
+
+    class FormatError < RuntimeError; end
   end
 end

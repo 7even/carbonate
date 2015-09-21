@@ -80,6 +80,35 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
+  context 'with hashes' do
+    let(:source) { '{:first-name "Rich", :last-name "Hickey"}' }
+
+    it 'parses the source into AST' do
+      expect(subject.parse(source)).to eq(
+        s(:hash,
+          s(:pair,
+            s(:sym, :first_name),
+            s(:str, 'Rich')
+          ),
+          s(:pair,
+            s(:sym, :last_name),
+            s(:str, 'Hickey')
+          )
+        )
+      )
+    end
+
+    context 'with odd number of elements' do
+      let(:source) { '{:key1 :value1 :key2}' }
+
+      it 'raises a FormatError' do
+        expect {
+          subject.parse(source)
+        }.to raise_error(Carbonate::Parser::FormatError)
+      end
+    end
+  end
+
   context 'with basic arithmetic' do
     let(:basic)  { '(+ 2 2)' }
     let(:nested) { '(+ 2 (* 3 4))' }
