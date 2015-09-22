@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'carbonate'
+
+STDOUT.write Carbonate.process(STDIN.read)
