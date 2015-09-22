@@ -10,6 +10,14 @@ module Carbonate
       end
     end
 
+    def wrap_in_begin(nodes)
+      if nodes.one?
+        nodes.first
+      else
+        s(:begin, nodes)
+      end
+    end
+
     def s(type, children)
       self.class.s(type, children)
     end
@@ -93,11 +101,7 @@ module Carbonate
 
     # outermost scope
     rule 'source : forms S | forms' do |source, forms|
-      source.value = if forms.value.one?
-        forms.value.first
-      else
-        s(:begin, forms.value)
-      end
+      source.value = wrap_in_begin(forms.value)
     end
 
     # multiple forms
@@ -106,12 +110,19 @@ module Carbonate
     end
 
     # form can be a local variable
+    # user
     rule 'form : LVAR' do |form, lvar|
       form.value = s(:lvar, [lvar.value])
     end
 
-    # form can also be an instance variable, an S-expression, a literal value or a collection of those
-    rule 'form : IVAR | INTEGER | FLOAT | STRING | SYMBOL | REGEXP | array | hash | set | sexp' do |form, element|
+    # form can be an instance variable
+    # @user
+    rule 'form : IVAR' do |form, ivar|
+      form.value = s(:ivar, [ivar.value])
+    end
+
+    # form can also be an S-expression, a literal value or a collection of forms
+    rule 'form : INTEGER | FLOAT | STRING | SYMBOL | REGEXP | array | hash | set | sexp' do |form, element|
       form.value = element.value
     end
 
@@ -157,7 +168,8 @@ module Carbonate
     # class definition
     # (defclass User (class body))
     rule 'sexp : "(" DEFCLASS S CONST S sexps ")"' do |sexp, _, _, _, const, _, sexps, _|
-      sexp.value = s(:class, [const.value, nil, *sexps.value])
+      class_body = wrap_in_begin(sexps.value)
+      sexp.value = s(:class, [const.value, nil, class_body])
     end
 
     # module definition
@@ -169,12 +181,7 @@ module Carbonate
     # method defition
     # (defmethod full-name (join [first-name last-name]))
     rule 'sexp : "(" DEFMETHOD S LVAR S arguments_list S sexps ")"' do |sexp, _, _, _, method_name, _, args, _, sexps, _|
-      method_body = if sexps.value.one?
-        sexps.value.first
-      else
-        s(:begin, sexps.value)
-      end
-
+      method_body = wrap_in_begin(sexps.value)
       sexp.value = s(:def, [method_name.value.to_sym, args.value, method_body])
     end
 

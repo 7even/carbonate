@@ -185,7 +185,9 @@ RSpec.describe Carbonate::Parser do
 (defclass User
   (defmethod initialize [first-name last-name]
     (def @first-name first-name)
-    (def @last-name last-name)))
+    (def @last-name last-name))
+  (defmethod full-name []
+    (join [@first-name @last-name])))
       CRB
     end
 
@@ -194,15 +196,28 @@ RSpec.describe Carbonate::Parser do
         s(:class,
           s(:const, nil, :User),
           nil,
-          s(:def,
-            :initialize,
-            s(:args,
-              s(:arg, :first_name),
-              s(:arg, :last_name)
+          s(:begin,
+            s(:def,
+              :initialize,
+              s(:args,
+                s(:arg, :first_name),
+                s(:arg, :last_name)
+              ),
+              s(:begin,
+                s(:ivasgn, :@first_name, s(:lvar, :first_name)),
+                s(:ivasgn, :@last_name, s(:lvar, :last_name))
+              )
             ),
-            s(:begin,
-              s(:ivasgn, :@first_name, s(:lvar, :first_name)),
-              s(:ivasgn, :@last_name, s(:lvar, :last_name))
+            s(:def,
+              :full_name,
+              s(:args),
+              s(:send,
+                s(:array,
+                  s(:ivar, :@first_name),
+                  s(:ivar, :@last_name),
+                ),
+                :join
+              )
             )
           )
         )
