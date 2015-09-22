@@ -65,6 +65,7 @@ module Carbonate
       token :S, /[\s,]+/
 
       token :DEFCLASS,  /defclass/
+      token :DEFMODULE, /defmodule/
       token :DEFMETHOD, /defmethod/
       token :DEF,       /def/
 
@@ -159,10 +160,21 @@ module Carbonate
       sexp.value = s(:class, [const.value, nil, *sexps.value])
     end
 
+    # module definition
+    # (defmodule Enumerable (module body ...))
+    rule 'sexp : "(" DEFMODULE S CONST S sexps ")"' do |sexp, _, _, _, const, _, sexps, _|
+      sexp.value = s(:module, [const.value, *sexps.value])
+    end
+
     # method defition
     # (defmethod full-name (join [first-name last-name]))
     rule 'sexp : "(" DEFMETHOD S LVAR S arguments_list S sexps ")"' do |sexp, _, _, _, method_name, _, args, _, sexps, _|
-      method_body = s(:begin, sexps.value)
+      method_body = if sexps.value.one?
+        sexps.value.first
+      else
+        s(:begin, sexps.value)
+      end
+
       sexp.value = s(:def, [method_name.value.to_sym, args.value, method_body])
     end
 

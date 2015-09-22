@@ -167,14 +167,12 @@ RSpec.describe Carbonate::Parser do
         s(:def,
           :full_name,
           s(:args),
-          s(:begin,
-            s(:send,
-              s(:array,
-                s(:lvar, :first_name),
-                s(:lvar, :last_name)
-              ),
-              :join
-            )
+          s(:send,
+            s(:array,
+              s(:lvar, :first_name),
+              s(:lvar, :last_name)
+            ),
+            :join
           )
         )
       )
@@ -205,6 +203,35 @@ RSpec.describe Carbonate::Parser do
             s(:begin,
               s(:ivasgn, :@first_name, s(:lvar, :first_name)),
               s(:ivasgn, :@last_name, s(:lvar, :last_name))
+            )
+          )
+        )
+      )
+    end
+  end
+
+  context 'with a module definition' do
+    let(:source) do
+      <<-CRB
+(defmodule Naming
+  (defmethod full-name []
+    (join [first-name last-name])))
+      CRB
+    end
+
+    it 'parses the source into AST' do
+      expect(subject.parse(source)).to eq(
+        s(:module,
+          s(:const, nil, :Naming),
+          s(:def,
+            :full_name,
+            s(:args),
+            s(:send,
+              s(:array,
+                s(:lvar, :first_name),
+                s(:lvar, :last_name)
+              ),
+              :join
             )
           )
         )
