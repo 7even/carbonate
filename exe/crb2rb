@@ -1,6 +1,57 @@
 #!/usr/bin/env ruby
 
 require 'bundler/setup'
+require 'optparse'
+require 'pathname'
 require 'carbonate'
 
-STDOUT.write Carbonate.process(STDIN.read)
+options = {}
+
+OptionParser.new do |opts|
+  opts.banner = <<-BANNER
+Transpiles a Carbonate source file to a Ruby source file.
+Usage: crb2rb -i source.crb -o target.rb
+     | crb2rb < source.crb > target.rb
+  BANNER
+
+  opts.on '-i FILENAME', '--input', 'Input file (optional, defaults to STDIN)' do |filename|
+    options[:input] = Pathname.new(filename)
+  end
+
+  opts.on '-o FILENAME', '--output', 'Output file (optional, defaults to STDOUT)' do |filename|
+    options[:output] = Pathname.new(filename)
+  end
+
+  opts.on '-f', '--force', 'Silently overwrite existing files' do
+    options[:overwrite] = true
+  end
+
+  opts.on('-h', '--help', 'Print this help') do
+    puts opts
+    exit
+  end
+end.parse!
+
+if options.key?(:input)
+  if options[:input].exist?
+    source = options[:input].read
+  else
+    puts "Input file #{options[:input]} doesn't exist!"
+    exit 127
+  end
+else
+  source = STDIN.read
+end
+
+result = Carbonate.process(source)
+
+if options.key?(:output)
+  if options[:overwrite] || !options[:output].exist?
+    options[:output].write(result)
+  else
+    puts "File #{options[:output]} already exists!"
+    exit 127
+  end
+else
+  STDOUT.write(result)
+end

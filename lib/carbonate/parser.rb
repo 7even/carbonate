@@ -93,7 +93,7 @@ module Carbonate
       end
 
       on_error do |t|
-        puts "Illegal character #{t.value.inspect} at line #{t.lexer.lineno + 1}"
+        STDERR.puts "Illegal character #{t.value.inspect} at line #{t.lexer.lineno + 1}"
         t.lexer.pos += 1
         nil
       end
