@@ -1,0 +1,9 @@
+(defclass User
+  (defmethod initialize [first-name last-name age]
+    (def @first-name first-name)
+    (def @last-name last-name)
+    (def @age age))
+  (defmethod full-name []
+    (join [@first-name @last-name]))
+  (defmethod age []
+    (to-i @age)))
