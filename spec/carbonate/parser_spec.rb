@@ -154,6 +154,35 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
+  context 'with a method call' do
+    context 'of an instance method' do
+      let(:source) { '(name user)' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(s(:send, s(:lvar, :user), :name))
+      end
+    end
+
+    context 'of a class method' do
+      let(:source) { '(User/find-by {:first-name "John"})' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(
+          s(:send,
+            s(:const, nil, :User),
+            :find_by,
+            s(:hash,
+              s(:pair,
+                s(:sym, :first_name),
+                s(:str, 'John')
+              )
+            )
+          )
+        )
+      end
+    end
+  end
+
   context 'with a method definition' do
     let(:source) do
       <<-CRB
