@@ -181,6 +181,20 @@ RSpec.describe Carbonate::Parser do
         )
       end
     end
+
+    context 'without an explicit receiver' do
+      let(:source) { '(@attr-reader :first-name)' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(
+          s(:send,
+            nil,
+            :attr_reader,
+            s(:sym, :first_name)
+          )
+        )
+      end
+    end
   end
 
   context 'with a method definition' do

@@ -1,4 +1,5 @@
 (defclass User
+  (@attr-reader :first-name :last-name :age)
   (defmethod initialize [first-name last-name age]
     (def @first-name first-name)
     (def @last-name last-name)

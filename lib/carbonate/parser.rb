@@ -159,16 +159,22 @@ module Carbonate
       sexps.value = without_spaces(sexps_array).flat_map(&:value)
     end
 
-    # function/method call with an explicit receiver object
+    # instance method call with an explicit receiver
     # (+ 2 2)
     rule 'sexp : "(" func S forms ")"' do |sexp, _, func, _, forms, _|
       sexp.value = s(:send, [forms.value.first, func.value, *forms.value[1..-1]])
     end
 
-    # function/method call with an explicit receiver class/module
+    # class method call with an explicit receiver
     # (User/find-by {:first-name "John"})
     rule 'sexp : "(" CONST "/" func S forms ")"' do |sexp, _, const, _, func, _, forms, _|
       sexp.value = s(:send, [const.value, func.value, *forms.value])
+    end
+
+    # method call with an implicit receiver
+    # (attr-reader :first-name)
+    rule 'sexp : "(" IVAR S forms ")"' do |sexp, _, ivar, _, forms, _|
+      sexp.value = s(:send, [nil, ivar.value[1..-1].to_sym, *forms.value])
     end
 
     # class definition
