@@ -37,7 +37,7 @@ module Carbonate
     end
 
     lexer do
-      literals '+-*/()[]{}#<@'
+      literals '+-*/()[]{}#<@.'
 
       token :FLOAT, /\d+\.\d+/ do |t|
         t.value = Parser.s(:float, [t.value.to_f])
@@ -181,6 +181,12 @@ module Carbonate
     # (@attr-reader :first-name)
     rule 'sexp : "(" IVAR S forms ")"' do |sexp, _, ivar, _, forms, _|
       sexp.value = s(:send, [nil, ivar.value[1..-1].to_sym, *forms.value])
+    end
+
+    # class constructor call
+    # (User. {:name "John"})
+    rule 'sexp : "(" CONST "." S forms ")"' do |sexp, _, const, _, _, forms|
+      sexp.value = s(:send, [const.value, :new, *forms.value])
     end
 
     # class definition

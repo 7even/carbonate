@@ -221,6 +221,25 @@ RSpec.describe Carbonate::Parser do
         )
       end
     end
+
+    context 'of a class constructor' do
+      let(:source) { '(User. {:name "John"})' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(
+          s(:send,
+            s(:const, nil, :User),
+            :new,
+            s(:hash,
+              s(:pair,
+                s(:sym, :name),
+                s(:str, 'John')
+              )
+            )
+          )
+        )
+      end
+    end
   end
 
   context 'with a method definition' do
