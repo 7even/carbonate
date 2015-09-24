@@ -323,4 +323,27 @@ RSpec.describe Carbonate::Parser do
       )
     end
   end
+
+  context 'with a singleton class definition' do
+    let(:source) do
+      <<-CRB
+(<< user
+    (defmethod name []
+      @name))
+      CRB
+    end
+
+    it 'parses the source into AST' do
+      expect(subject.parse(source)).to eq(
+        s(:sclass,
+          s(:lvar, :user),
+          s(:def,
+            :name,
+            s(:args),
+            s(:ivar, :@name)
+          )
+        )
+      )
+    end
+  end
 end

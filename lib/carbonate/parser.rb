@@ -37,7 +37,7 @@ module Carbonate
     end
 
     lexer do
-      literals '+-*/()[]{}#'
+      literals '+-*/()[]{}#<'
 
       token :FLOAT, /\d+\.\d+/ do |t|
         t.value = Parser.s(:float, [t.value.to_f])
@@ -189,6 +189,13 @@ module Carbonate
     rule 'sexp : "(" DEFMODULE S CONST S forms ")"' do |sexp, _, _, _, const, _, forms, _|
       module_body = wrap_in_begin(forms.value)
       sexp.value = s(:module, [const.value, module_body])
+    end
+
+    # singleton class definition
+    # (<< user (defmethod name [] @name)
+    rule 'sexp : "(" "<" "<" S form S forms ")"' do |sexp, _, _, _, _, form, _, forms, _|
+      singleton_body = wrap_in_begin(forms.value)
+      sexp.value = s(:sclass, [form.value, singleton_body])
     end
 
     # method defition
