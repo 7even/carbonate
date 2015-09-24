@@ -154,6 +154,14 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
+  context 'with self' do
+    let(:source) { '(+ 2 @)' }
+
+    it 'parses the source into AST' do
+      expect(subject.parse(source)).to eq(s(:send, s(:int, 2), :+, s(:self)))
+    end
+  end
+
   context 'with a variable assignment' do
     context 'of a local variable' do
       let(:source) { '(def username "7even")' }

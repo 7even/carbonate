@@ -37,7 +37,7 @@ module Carbonate
     end
 
     lexer do
-      literals '+-*/()[]{}#<'
+      literals '+-*/()[]{}#<@'
 
       token :FLOAT, /\d+\.\d+/ do |t|
         t.value = Parser.s(:float, [t.value.to_f])
@@ -121,8 +121,8 @@ module Carbonate
       form.value = s(:ivar, [ivar.value])
     end
 
-    # form can also be an S-expression, a literal value or a collection of forms
-    rule 'form : INTEGER | FLOAT | STRING | SYMBOL | REGEXP | array | hash | set | sexp' do |form, element|
+    # form can also be an S-expression, a literal value, self or a collection of forms
+    rule 'form : INTEGER | FLOAT | STRING | SYMBOL | REGEXP | array | hash | set | self | sexp' do |form, element|
       form.value = element.value
     end
 
@@ -152,6 +152,12 @@ module Carbonate
           s(:array, forms.value)
         ]
       )
+    end
+
+    # self
+    # @
+    rule 'self : "@"' do |self_node, _|
+      self_node.value = s(:self, [])
     end
 
     # multiple S-expressions
