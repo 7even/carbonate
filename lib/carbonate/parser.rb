@@ -179,22 +179,22 @@ module Carbonate
 
     # class definition
     # (defclass User (class body))
-    rule 'sexp : "(" DEFCLASS S CONST S sexps ")"' do |sexp, _, _, _, const, _, sexps, _|
-      class_body = wrap_in_begin(sexps.value)
+    rule 'sexp : "(" DEFCLASS S CONST S forms ")"' do |sexp, _, _, _, const, _, forms, _|
+      class_body = wrap_in_begin(forms.value)
       sexp.value = s(:class, [const.value, nil, class_body])
     end
 
     # module definition
     # (defmodule Enumerable (module body ...))
-    rule 'sexp : "(" DEFMODULE S CONST S sexps ")"' do |sexp, _, _, _, const, _, sexps, _|
-      module_body = wrap_in_begin(sexps.value)
+    rule 'sexp : "(" DEFMODULE S CONST S forms ")"' do |sexp, _, _, _, const, _, forms, _|
+      module_body = wrap_in_begin(forms.value)
       sexp.value = s(:module, [const.value, module_body])
     end
 
     # method defition
     # (defmethod full-name (join [first-name last-name]))
-    rule 'sexp : "(" DEFMETHOD S LVAR S arguments_list S sexps ")"' do |sexp, _, _, _, method_name, _, args, _, sexps, _|
-      method_body = wrap_in_begin(sexps.value)
+    rule 'sexp : "(" DEFMETHOD S LVAR S arguments_list S forms ")"' do |sexp, _, _, _, method_name, _, args, _, forms, _|
+      method_body = wrap_in_begin(forms.value)
       sexp.value = s(:def, [method_name.value.to_sym, args.value, method_body])
     end
 
