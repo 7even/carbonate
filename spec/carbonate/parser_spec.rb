@@ -1,316 +1,277 @@
 require 'spec_helper'
 
 RSpec.describe Carbonate::Parser do
-  def s(type, *children)
-    Parser::AST::Node.new(type, children)
+  class << self
+    def s(type, *children)
+      Parser::AST::Node.new(type, children)
+    end
+
+    def should_parse(from:, to:)
+      it 'parses the source into AST' do
+        expect(subject.parse(from)).to eq(to)
+      end
+    end
   end
 
   context 'with numbers' do
     context 'integer' do
-      let(:source) { '1' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(s(:int, 1))
-      end
+      should_parse(
+        from: '1',
+        to: s(:int, 1)
+      )
     end
 
     context 'float' do
-      let(:source) { '3.14' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(s(:float, 3.14))
-      end
+      should_parse(
+        from: '3.14',
+        to: s(:float, 3.14)
+      )
     end
   end
 
   context 'with strings' do
     context 'without escaped characters' do
-      let(:source) { '"some string"' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(s(:str, 'some string'))
-      end
+      should_parse(
+        from: '"some string"',
+        to: s(:str, 'some string')
+      )
     end
 
     context 'with escaped characters' do
-      let(:source) { '"line1\nline2\rline3\tline4 \'single-quoted text\' \"double-quoted text\""' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(
-          s(:str,
-            "line1\nline2\rline3\tline4 'single-quoted text' \"double-quoted text\""
-          )
+      should_parse(
+        from: '"line1\nline2\rline3\tline4 \'single-quoted text\' \"double-quoted text\""',
+        to: s(:str,
+          "line1\nline2\rline3\tline4 'single-quoted text' \"double-quoted text\""
         )
-      end
+      )
     end
   end
 
   context 'with symbols' do
-    let(:source) { ':some-symbol' }
-
-    it 'parses the source into AST' do
-      expect(subject.parse(source)).to eq(s(:sym, :some_symbol))
-    end
+    should_parse(
+      from: ':some-symbol',
+      to: s(:sym, :some_symbol)
+    )
   end
 
   context 'with regexps' do
-    let(:source) { '#"[A-Za-z]+"' }
-
-    it 'parses the source into AST' do
-      expect(subject.parse(source)).to eq(
-        s(:regexp,
-          s(:str, '[A-Za-z]+'),
-          s(:regopt)
-        )
+    should_parse(
+      from: '#"[A-Za-z]+"',
+      to: s(:regexp,
+        s(:str, '[A-Za-z]+'),
+        s(:regopt)
       )
-    end
+    )
   end
 
   context 'with arrays' do
-    let(:source) { '[1 2 3]' }
-
-    it 'parses the source into AST' do
-      expect(subject.parse(source)).to eq(
-        s(:array,
-          s(:int, 1),
-          s(:int, 2),
-          s(:int, 3)
-        )
+    should_parse(
+      from: '[1 2 3]',
+      to: s(:array,
+        s(:int, 1),
+        s(:int, 2),
+        s(:int, 3)
       )
-    end
+    )
   end
 
   context 'with hashes' do
-    let(:source) { '{:first-name "Rich", :last-name "Hickey"}' }
-
-    it 'parses the source into AST' do
-      expect(subject.parse(source)).to eq(
-        s(:hash,
-          s(:pair,
-            s(:sym, :first_name),
-            s(:str, 'Rich')
-          ),
-          s(:pair,
-            s(:sym, :last_name),
-            s(:str, 'Hickey')
-          )
+    should_parse(
+      from: '{:first-name "Rich", :last-name "Hickey"}',
+      to: s(:hash,
+        s(:pair,
+          s(:sym, :first_name),
+          s(:str, 'Rich')
+        ),
+        s(:pair,
+          s(:sym, :last_name),
+          s(:str, 'Hickey')
         )
       )
-    end
+    )
 
     context 'with odd number of elements' do
-      let(:source) { '{:key1 :value1 :key2}' }
-
       it 'raises a FormatError' do
         expect {
-          subject.parse(source)
+          subject.parse('{:key1 :value1 :key2}')
         }.to raise_error(Carbonate::Parser::FormatError)
       end
     end
   end
 
   context 'with sets' do
-    let(:source) { '#{123 "string" :symbol}' }
-
-    it 'parses the source into AST' do
-      expect(subject.parse(source)).to eq(
-        s(:send,
-          s(:const, nil, :Set),
-          :new,
-          s(:array,
-            s(:int, 123),
-            s(:str, 'string'),
-            s(:sym, :symbol)
-          )
+    should_parse(
+      from: '#{123 "string" :symbol}',
+      to: s(:send,
+        s(:const, nil, :Set),
+        :new,
+        s(:array,
+          s(:int, 123),
+          s(:str, 'string'),
+          s(:sym, :symbol)
         )
       )
-    end
+    )
   end
 
   context 'with basic arithmetic' do
-    let(:basic)  { '(+ 2 2)' }
-    let(:nested) { '(+ 2 (* 3 4))' }
+    should_parse(
+      from: '(+ 2 2)',
+      to: s(:send,
+        s(:int, 2),
+        :+,
+        s(:int, 2)
+      )
+    )
 
-    it 'parses the source into AST' do
-      expect(subject.parse(basic)).to eq(
+    should_parse(
+      from: '(+ 2 (* 3 4))',
+      to: s(:send,
+        s(:int, 2),
+        :+,
         s(:send,
-          s(:int, 2),
-          :+,
-          s(:int, 2)
+          s(:int, 3),
+          :*,
+          s(:int, 4)
         )
       )
-
-      expect(subject.parse(nested)).to eq(
-        s(:send,
-          s(:int, 2),
-          :+,
-          s(:send,
-            s(:int, 3),
-            :*,
-            s(:int, 4)
-          )
-        )
-      )
-    end
+    )
   end
 
   context 'with self' do
-    let(:source) { '(+ 2 @)' }
-
-    it 'parses the source into AST' do
-      expect(subject.parse(source)).to eq(s(:send, s(:int, 2), :+, s(:self)))
-    end
+    should_parse(
+      from: '(+ 2 @)',
+      to: s(:send, s(:int, 2), :+, s(:self))
+    )
   end
 
   context 'with a constant' do
     context 'defined at top level' do
-      let(:source) { 'User' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(s(:const, nil, :User))
-      end
+      should_parse(
+        from: 'User',
+        to: s(:const, nil, :User)
+      )
     end
 
     context 'nested in a namespace' do
-      let(:source) { 'Carbonate.Parser' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(s(:const, s(:const, nil, :Carbonate), :Parser))
-      end
+      should_parse(
+        from: 'Carbonate.Parser',
+        to: s(:const, s(:const, nil, :Carbonate), :Parser)
+      )
     end
   end
 
   context 'with a variable assignment' do
     context 'of a local variable' do
-      let(:source) { '(def username "7even")' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(s(:lvasgn, :username, s(:str, '7even')))
-      end
+      should_parse(
+        from: '(def username "7even")',
+        to: s(:lvasgn, :username, s(:str, '7even'))
+      )
     end
 
     context 'of an instance variable' do
-      let(:source) { '(def @first-name "John")' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(s(:ivasgn, :@first_name, s(:str, 'John')))
-      end
+      should_parse(
+        from: '(def @first-name "John")',
+        to: s(:ivasgn, :@first_name, s(:str, 'John'))
+      )
     end
 
     context "of an object's attribute" do
-      let(:lvar_assignment) { '(def user.name "John")' }
-      let(:ivar_assignment) { '(def @user.name "John")' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(lvar_assignment)).to eq(
-          s(:send,
-            s(:lvar, :user),
-            :name=,
-            s(:str, 'John')
-          )
+      should_parse(
+        from: '(def user.name "John")',
+        to: s(:send,
+          s(:lvar, :user),
+          :name=,
+          s(:str, 'John')
         )
+      )
 
-        expect(subject.parse(ivar_assignment)).to eq(
-          s(:send,
-            s(:ivar, :@user),
-            :name=,
-            s(:str, 'John')
-          )
+      should_parse(
+        from: '(def @user.name "John")',
+        to: s(:send,
+          s(:ivar, :@user),
+          :name=,
+          s(:str, 'John')
         )
-      end
+      )
     end
   end
 
   context 'with a method call' do
     context 'of an instance method' do
-      let(:source) { '(name user)' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(s(:send, s(:lvar, :user), :name))
-      end
+      should_parse(
+        from: '(name user)',
+        to: s(:send, s(:lvar, :user), :name)
+      )
     end
 
     context 'of a class method' do
-      let(:source) { '(User/find-by {:first-name "John"})' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(
-          s(:send,
-            s(:const, nil, :User),
-            :find_by,
-            s(:hash,
-              s(:pair,
-                s(:sym, :first_name),
-                s(:str, 'John')
-              )
+      should_parse(
+        from: '(User/find-by {:first-name "John"})',
+        to: s(:send,
+          s(:const, nil, :User),
+          :find_by,
+          s(:hash,
+            s(:pair,
+              s(:sym, :first_name),
+              s(:str, 'John')
             )
           )
         )
-      end
+      )
     end
 
     context 'without an explicit receiver' do
-      let(:source) { '(@attr-reader :first-name)' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(
-          s(:send,
-            nil,
-            :attr_reader,
-            s(:sym, :first_name)
-          )
+      should_parse(
+        from: '(@attr-reader :first-name)',
+        to: s(:send,
+          nil,
+          :attr_reader,
+          s(:sym, :first_name)
         )
-      end
+      )
     end
 
     context 'of a class constructor' do
-      let(:source) { '(User. {:name "John"})' }
-
-      it 'parses the source into AST' do
-        expect(subject.parse(source)).to eq(
-          s(:send,
-            s(:const, nil, :User),
-            :new,
-            s(:hash,
-              s(:pair,
-                s(:sym, :name),
-                s(:str, 'John')
-              )
+      should_parse(
+        from: '(User. {:name "John"})',
+        to: s(:send,
+          s(:const, nil, :User),
+          :new,
+          s(:hash,
+            s(:pair,
+              s(:sym, :name),
+              s(:str, 'John')
             )
-          )
-        )
-      end
-    end
-  end
-
-  context 'with a method definition' do
-    let(:source) do
-      <<-CRB
-(defmethod full-name []
-  (join [first-name last-name]))
-      CRB
-    end
-
-    it 'parses the source into AST' do
-      expect(subject.parse(source)).to eq(
-        s(:def,
-          :full_name,
-          s(:args),
-          s(:send,
-            s(:array,
-              s(:lvar, :first_name),
-              s(:lvar, :last_name)
-            ),
-            :join
           )
         )
       )
     end
   end
 
+  context 'with a method definition' do
+    should_parse(
+      from: (<<-CRB),
+(defmethod full-name []
+  (join [first-name last-name]))
+      CRB
+      to: s(:def,
+        :full_name,
+        s(:args),
+        s(:send,
+          s(:array,
+            s(:lvar, :first_name),
+            s(:lvar, :last_name)
+          ),
+          :join
+        )
+      )
+    )
+  end
+
   context 'with a class definition' do
-    let(:source) do
-      <<-CRB
+    should_parse(
+      from: (<<-CRB),
 (defclass User
   (defmethod initialize [first-name last-name]
     (def @first-name first-name)
@@ -318,100 +279,85 @@ RSpec.describe Carbonate::Parser do
   (defmethod full-name []
     (join [@first-name @last-name])))
       CRB
-    end
-
-    it 'parses the source into AST' do
-      expect(subject.parse(source)).to eq(
-        s(:class,
-          s(:const, nil, :User),
-          nil,
-          s(:begin,
-            s(:def,
-              :initialize,
-              s(:args,
-                s(:arg, :first_name),
-                s(:arg, :last_name)
-              ),
-              s(:begin,
-                s(:ivasgn, :@first_name, s(:lvar, :first_name)),
-                s(:ivasgn, :@last_name, s(:lvar, :last_name))
-              )
+      to: s(:class,
+        s(:const, nil, :User),
+        nil,
+        s(:begin,
+          s(:def,
+            :initialize,
+            s(:args,
+              s(:arg, :first_name),
+              s(:arg, :last_name)
             ),
-            s(:def,
-              :full_name,
-              s(:args),
-              s(:send,
-                s(:array,
-                  s(:ivar, :@first_name),
-                  s(:ivar, :@last_name),
-                ),
-                :join
-              )
+            s(:begin,
+              s(:ivasgn, :@first_name, s(:lvar, :first_name)),
+              s(:ivasgn, :@last_name, s(:lvar, :last_name))
+            )
+          ),
+          s(:def,
+            :full_name,
+            s(:args),
+            s(:send,
+              s(:array,
+                s(:ivar, :@first_name),
+                s(:ivar, :@last_name),
+              ),
+              :join
             )
           )
         )
       )
-    end
+    )
   end
 
   context 'with a module definition' do
-    let(:source) do
-      <<-CRB
+    should_parse(
+      from: (<<-CRB),
 (defmodule Naming
   (@attr-reader :first-name :last-name)
   (defmethod full-name []
     (join [first-name last-name])))
       CRB
-    end
-
-    it 'parses the source into AST' do
-      expect(subject.parse(source)).to eq(
-        s(:module,
-          s(:const, nil, :Naming),
-          s(:begin,
+      to: s(:module,
+        s(:const, nil, :Naming),
+        s(:begin,
+          s(:send,
+            nil,
+            :attr_reader,
+            s(:sym, :first_name),
+            s(:sym, :last_name)
+          ),
+          s(:def,
+            :full_name,
+            s(:args),
             s(:send,
-              nil,
-              :attr_reader,
-              s(:sym, :first_name),
-              s(:sym, :last_name)
-            ),
-            s(:def,
-              :full_name,
-              s(:args),
-              s(:send,
-                s(:array,
-                  s(:lvar, :first_name),
-                  s(:lvar, :last_name)
-                ),
-                :join
-              )
+              s(:array,
+                s(:lvar, :first_name),
+                s(:lvar, :last_name)
+              ),
+              :join
             )
           )
         )
       )
-    end
+    )
   end
 
   context 'with a singleton class definition' do
-    let(:source) do
-      <<-CRB
+    should_parse(
+      from: (<<-CRB),
 (<< user
     (defmethod name []
       @name))
       CRB
-    end
-
-    it 'parses the source into AST' do
-      expect(subject.parse(source)).to eq(
-        s(:sclass,
-          s(:lvar, :user),
-          s(:def,
-            :name,
-            s(:args),
-            s(:ivar, :@name)
-          )
+      to: s(:sclass,
+        s(:lvar, :user),
+        s(:def,
+          :name,
+          s(:args),
+          s(:ivar, :@name)
         )
       )
-    end
+    )
   end
 end
