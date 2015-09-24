@@ -172,7 +172,7 @@ module Carbonate
     end
 
     # method call with an implicit receiver
-    # (attr-reader :first-name)
+    # (@attr-reader :first-name)
     rule 'sexp : "(" IVAR S forms ")"' do |sexp, _, ivar, _, forms, _|
       sexp.value = s(:send, [nil, ivar.value[1..-1].to_sym, *forms.value])
     end
