@@ -290,6 +290,7 @@ RSpec.describe Carbonate::Parser do
     let(:source) do
       <<-CRB
 (defmodule Naming
+  (@attr-reader :first-name :last-name)
   (defmethod full-name []
     (join [first-name last-name])))
       CRB
@@ -299,15 +300,23 @@ RSpec.describe Carbonate::Parser do
       expect(subject.parse(source)).to eq(
         s(:module,
           s(:const, nil, :Naming),
-          s(:def,
-            :full_name,
-            s(:args),
+          s(:begin,
             s(:send,
-              s(:array,
-                s(:lvar, :first_name),
-                s(:lvar, :last_name)
-              ),
-              :join
+              nil,
+              :attr_reader,
+              s(:sym, :first_name),
+              s(:sym, :last_name)
+            ),
+            s(:def,
+              :full_name,
+              s(:args),
+              s(:send,
+                s(:array,
+                  s(:lvar, :first_name),
+                  s(:lvar, :last_name)
+                ),
+                :join
+              )
             )
           )
         )

@@ -187,7 +187,8 @@ module Carbonate
     # module definition
     # (defmodule Enumerable (module body ...))
     rule 'sexp : "(" DEFMODULE S CONST S sexps ")"' do |sexp, _, _, _, const, _, sexps, _|
-      sexp.value = s(:module, [const.value, *sexps.value])
+      module_body = wrap_in_begin(sexps.value)
+      sexp.value = s(:module, [const.value, module_body])
     end
 
     # method defition
