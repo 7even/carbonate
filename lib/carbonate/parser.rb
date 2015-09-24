@@ -77,8 +77,10 @@ module Carbonate
       token :DEFMETHOD, /defmethod/
       token :DEF,       /def/
 
-      token :CONST, /[A-Z][A-Za-z0-9]*/ do |t|
-        t.value = Parser.s(:const, [nil, t.value.to_sym])
+      token :CONST, /([A-Z][A-Za-z0-9]+\.)*[A-Z][A-Za-z0-9]+/ do |t|
+        t.value = t.value.split('.').inject(nil) do |namespace, part|
+          Parser.s(:const, [namespace, part.to_sym])
+        end
         t
       end
 
@@ -121,8 +123,18 @@ module Carbonate
       form.value = s(:ivar, [ivar.value])
     end
 
-    # form can also be an S-expression, a literal value, self or a collection of forms
-    rule 'form : INTEGER | FLOAT | STRING | SYMBOL | REGEXP | array | hash | set | self | sexp' do |form, element|
+    # form can also be an S-expression, a literal value, a constant, self or a collection of forms
+    rule 'form : INTEGER
+               | FLOAT
+               | STRING
+               | SYMBOL
+               | REGEXP
+               | array
+               | hash
+               | set
+               | CONST
+               | self
+               | sexp' do |form, element|
       form.value = element.value
     end
 

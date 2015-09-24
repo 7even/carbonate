@@ -162,6 +162,24 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
+  context 'with a constant' do
+    context 'defined at top level' do
+      let(:source) { 'User' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(s(:const, nil, :User))
+      end
+    end
+
+    context 'nested in a namespace' do
+      let(:source) { 'Carbonate.Parser' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(s(:const, s(:const, nil, :Carbonate), :Parser))
+      end
+    end
+  end
+
   context 'with a variable assignment' do
     context 'of a local variable' do
       let(:source) { '(def username "7even")' }
