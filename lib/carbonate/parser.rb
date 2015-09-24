@@ -197,8 +197,14 @@ module Carbonate
       sexp.value = s(:def, [method_name.value.to_sym, args.value, method_body])
     end
 
-    # assignment
-    # (def age 30)
+    # local variable assignment
+    # (def username "7even")
+    rule 'sexp : "(" DEF S LVAR S form ")"' do |sexp, _, _, _, var_name, _, form, _|
+      sexp.value = s(:lvasgn, [var_name.value, form.value])
+    end
+
+    # instance variable assignment
+    # (def @age 30)
     rule 'sexp : "(" DEF S IVAR S form ")"' do |sexp, _, _, _, var_name, _, form, _|
       sexp.value = s(:ivasgn, [var_name.value, form.value])
     end

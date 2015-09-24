@@ -154,6 +154,24 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
+  context 'with a variable assignment' do
+    context 'of a local variable' do
+      let(:source) { '(def username "7even")' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(s(:lvasgn, :username, s(:str, '7even')))
+      end
+    end
+
+    context 'of an instance variable' do
+      let(:source) { '(def @first-name "John")' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(source)).to eq(s(:ivasgn, :@first_name, s(:str, 'John')))
+      end
+    end
+  end
+
   context 'with a method call' do
     context 'of an instance method' do
       let(:source) { '(name user)' }
