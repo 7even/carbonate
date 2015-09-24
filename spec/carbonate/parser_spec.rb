@@ -178,6 +178,29 @@ RSpec.describe Carbonate::Parser do
         expect(subject.parse(source)).to eq(s(:ivasgn, :@first_name, s(:str, 'John')))
       end
     end
+
+    context "of an object's attribute" do
+      let(:lvar_assignment) { '(def user.name "John")' }
+      let(:ivar_assignment) { '(def @user.name "John")' }
+
+      it 'parses the source into AST' do
+        expect(subject.parse(lvar_assignment)).to eq(
+          s(:send,
+            s(:lvar, :user),
+            :name=,
+            s(:str, 'John')
+          )
+        )
+
+        expect(subject.parse(ivar_assignment)).to eq(
+          s(:send,
+            s(:ivar, :@user),
+            :name=,
+            s(:str, 'John')
+          )
+        )
+      end
+    end
   end
 
   context 'with a method call' do

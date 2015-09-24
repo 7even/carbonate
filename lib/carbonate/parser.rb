@@ -229,6 +229,13 @@ module Carbonate
       sexp.value = s(:ivasgn, [var_name.value, form.value])
     end
 
+    # object attribute assignment
+    # (def user.name "John")
+    rule 'sexp : "(" DEF S form "." LVAR S form ")"' do |sexp, _, _, _, object, _, lvar, _, form, _|
+      method_name = "#{lvar}=".to_sym
+      sexp.value = s(:send, [object.value, method_name, form.value])
+    end
+
     # method arguments list (in method definition)
     # [a b c]
     rule 'arguments_list : "[" arguments "]"' do |arguments_list, _, arguments, _|
