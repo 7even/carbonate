@@ -6,9 +6,9 @@ RSpec.describe Carbonate::Parser do
       Parser::AST::Node.new(type, children)
     end
 
-    def should_parse(from:, to:)
+    def should_parse(from:, to:, debug: false)
       it 'parses the source into AST' do
-        expect(subject.parse(from)).to eq(to)
+        expect(subject.parse(from, debug)).to eq(to)
       end
     end
   end
@@ -267,6 +267,28 @@ RSpec.describe Carbonate::Parser do
         )
       )
     )
+  end
+
+  context 'with a return statement' do
+    context 'without arguments' do
+      should_parse(
+        from: '(defmethod nothing [] (return))',
+        to: s(:def, :nothing, s(:args), s(:return))
+      )
+    end
+
+    context 'with arguments' do
+      should_parse(
+        from: '(defmethod name [] (return "John"))',
+        to: s(:def,
+          :name,
+          s(:args),
+          s(:return,
+            s(:str, 'John')
+          )
+        )
+      )
+    end
   end
 
   context 'with a class definition' do

@@ -72,10 +72,12 @@ module Carbonate
       # characters treated as whitespace
       token :S, /[\s,]+/
 
+      # keywords
       token :DEFCLASS,  /defclass/
       token :DEFMODULE, /defmodule/
       token :DEFMETHOD, /defmethod/
       token :DEF,       /def/
+      token :RETURN,    /return/
 
       token :CONST, /([A-Z][A-Za-z0-9]+\.)*[A-Z][A-Za-z0-9]+/ do |t|
         t.value = t.value.split('.').inject(nil) do |namespace, part|
@@ -193,6 +195,18 @@ module Carbonate
     # (@attr-reader :first-name)
     rule 'sexp : "(" IVAR S forms ")"' do |sexp, _, ivar, _, forms, _|
       sexp.value = s(:send, [nil, ivar.value[1..-1].to_sym, *forms.value])
+    end
+
+    # return statement without parameters
+    # (return)
+    rule 'sexp : "(" RETURN ")"' do |sexp, _, _, _|
+      sexp.value = s(:return, [])
+    end
+
+    # return statement with parameters
+    # (return 1)
+    rule 'sexp : "(" RETURN S forms ")"' do |sexp, _, _, _, forms, _|
+      sexp.value = s(:return, forms.value)
     end
 
     # class constructor call
