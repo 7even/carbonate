@@ -292,44 +292,60 @@ RSpec.describe Carbonate::Parser do
   end
 
   context 'with a class definition' do
-    should_parse(
-      from: (<<-CRB),
+    context 'without a parent class' do
+      should_parse(
+        from: (<<-CRB),
 (defclass User
   (defmethod initialize [first-name last-name]
     (def @first-name first-name)
     (def @last-name last-name))
   (defmethod full-name []
     (join [@first-name @last-name])))
-      CRB
-      to: s(:class,
-        s(:const, nil, :User),
-        nil,
-        s(:begin,
-          s(:def,
-            :initialize,
-            s(:args,
-              s(:arg, :first_name),
-              s(:arg, :last_name)
-            ),
-            s(:begin,
-              s(:ivasgn, :@first_name, s(:lvar, :first_name)),
-              s(:ivasgn, :@last_name, s(:lvar, :last_name))
-            )
-          ),
-          s(:def,
-            :full_name,
-            s(:args),
-            s(:send,
-              s(:array,
-                s(:ivar, :@first_name),
-                s(:ivar, :@last_name),
+        CRB
+        to: s(:class,
+          s(:const, nil, :User),
+          nil,
+          s(:begin,
+            s(:def,
+              :initialize,
+              s(:args,
+                s(:arg, :first_name),
+                s(:arg, :last_name)
               ),
-              :join
+              s(:begin,
+                s(:ivasgn, :@first_name, s(:lvar, :first_name)),
+                s(:ivasgn, :@last_name, s(:lvar, :last_name))
+              )
+            ),
+            s(:def,
+              :full_name,
+              s(:args),
+              s(:send,
+                s(:array,
+                  s(:ivar, :@first_name),
+                  s(:ivar, :@last_name),
+                ),
+                :join
+              )
             )
           )
         )
       )
-    )
+    end
+
+    context 'with a parent class' do
+      should_parse(
+        from: (<<-CRB),
+(defclass User < Base
+  (@include Naming))
+        CRB
+        to: s(:class,
+          s(:const, nil, :User),
+          s(:const, nil, :Base),
+          s(:send, nil, :include, s(:const, nil, :Naming))
+        )
+      )
+    end
   end
 
   context 'with a module definition' do

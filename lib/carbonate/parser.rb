@@ -215,11 +215,18 @@ module Carbonate
       sexp.value = s(:send, [const.value, :new, *forms.value])
     end
 
-    # class definition
+    # class definition w/o a parent class
     # (defclass User (class body))
     rule 'sexp : "(" DEFCLASS S CONST S forms ")"' do |sexp, _, _, _, const, _, forms, _|
       class_body = wrap_in_begin(forms.value)
       sexp.value = s(:class, [const.value, nil, class_body])
+    end
+
+    # class definition with a parent class
+    # (defclass User < Base (class body))
+    rule 'sexp : "(" DEFCLASS S CONST S "<" S form S forms ")"' do |sexp, _, _, _, const, _, _, _, form, _, forms|
+      class_body = wrap_in_begin(forms.value)
+      sexp.value = s(:class, [const.value, form.value, class_body])
     end
 
     # module definition
