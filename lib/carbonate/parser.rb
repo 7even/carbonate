@@ -22,18 +22,24 @@ module Carbonate
       self.class.s(type, children)
     end
 
-    def self.s(type, children = [])
-      ::Parser::AST::Node.new(type, children)
-    end
+    class << self
+      def s(type, children = [])
+        ::Parser::AST::Node.new(type, children)
+      end
 
-    def self.handle_string(string, range)
-      replacements = {
-        '\\n' => "\n",
-        '\\r' => "\r",
-        '\\t' => "\t",
-        '\\"' => '"'
-      }
-      string[range].gsub(/\\[nrt"]/, replacements)
+      def identifier(value)
+        value.gsub('-', '_').to_sym
+      end
+
+      def handle_string(string, range)
+        replacements = {
+          '\\n' => "\n",
+          '\\r' => "\r",
+          '\\t' => "\t",
+          '\\"' => '"'
+        }
+        string[range].gsub(/\\[nrt"]/, replacements)
+      end
     end
 
     lexer do
@@ -50,7 +56,7 @@ module Carbonate
       end
 
       token :SYMBOL, /:[A-Za-z0-9_-]+/ do |t|
-        t.value = Parser.s(:sym, [t.value[1..-1].gsub('-', '_').to_sym])
+        t.value = Parser.s(:sym, [Parser.identifier(t.value[1..-1])])
         t
       end
 
@@ -86,13 +92,27 @@ module Carbonate
         t
       end
 
-      token :LVAR, /[a-z][A-Za-z0-9_-]*/ do |t|
-        t.value = t.value.gsub('-', '_').to_sym
+      # method name with '!', '?' or '=' at the end
+      token :METHOD_NAME, /[a-z][A-Za-z0-9_-]*[!?=]/ do |t|
+        t.value = Parser.identifier(t.value)
         t
       end
 
+      # local variable or method name without special chars at the end
+      token :LVAR, /[a-z][A-Za-z0-9_-]*/ do |t|
+        t.value = Parser.identifier(t.value)
+        t
+      end
+
+      # method name with '!', '?' or '=' at the end, called without an explicit receiver
+      token :SELF_METHOD_NAME, /@[a-z][A-Za-z0-9_-]*[!?=]/ do |t|
+        t.value = Parser.identifier(t.value)
+        t
+      end
+
+      # instance variable or method name without special chars, called without an explicit receiver
       token :IVAR, /@[a-z][A-Za-z0-9_-]*/ do |t|
-        t.value = t.value.gsub('-', '_').to_sym
+        t.value = Parser.identifier(t.value)
         t
       end
 
@@ -187,14 +207,20 @@ module Carbonate
 
     # class method call with an explicit receiver
     # (User/find-by {:first-name "John"})
-    rule 'sexp : "(" CONST "/" func S forms ")"' do |sexp, _, const, _, func, _, forms, _|
-      sexp.value = s(:send, [const.value, func.value, *forms.value])
+    rule 'sexp : "(" CONST "/" func S forms ")"
+               | "(" CONST "/" func ")"' do |sexp, _, const, _, func, _, forms, _|
+      arguments = forms && forms.value || []
+      sexp.value = s(:send, [const.value, func.value, *arguments])
     end
 
     # method call with an implicit receiver
     # (@attr-reader :first-name)
-    rule 'sexp : "(" IVAR S forms ")"' do |sexp, _, ivar, _, forms, _|
-      sexp.value = s(:send, [nil, ivar.value[1..-1].to_sym, *forms.value])
+    rule 'sexp : "(" IVAR S forms ")"
+               | "(" IVAR ")"
+               | "(" SELF_METHOD_NAME S forms ")"
+               | "(" SELF_METHOD_NAME ")"' do |sexp, _, method_name, _, forms, _|
+      arguments = forms && forms.value || []
+      sexp.value = s(:send, [nil, method_name.value[1..-1].to_sym, *arguments])
     end
 
     # return statement without parameters
@@ -291,7 +317,7 @@ module Carbonate
     end
 
     # function/method (may be operator)
-    rule 'func : "+" | "-" | "*" | "/" | LVAR' do |func, function|
+    rule 'func : "+" | "-" | "*" | "/" | METHOD_NAME | LVAR' do |func, function|
       func.value = function.value.to_sym
     end
 

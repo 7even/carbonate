@@ -203,6 +203,21 @@ RSpec.describe Carbonate::Parser do
         from: '(name user)',
         to: s(:send, s(:lvar, :user), :name)
       )
+
+      context 'ending with a special char' do
+        should_parse(
+          from: '(include? [1 2 3] 4)',
+          to: s(:send,
+            s(:array,
+              s(:int, 1),
+              s(:int, 2),
+              s(:int, 3)
+            ),
+            :include?,
+            s(:int, 4)
+          )
+        )
+      end
     end
 
     context 'of a class method' do
@@ -219,6 +234,27 @@ RSpec.describe Carbonate::Parser do
           )
         )
       )
+
+      should_parse(
+        from: '(User/count)',
+        to: s(:send, s(:const, nil, :User), :count)
+      )
+
+      context 'ending with a special char' do
+        should_parse(
+          from: '(User/exists? {:name "Jack"})',
+          to: s(:send,
+            s(:const, nil, :User),
+            :exists?,
+            s(:hash,
+              s(:pair,
+                s(:sym, :name),
+                s(:str, 'Jack')
+              )
+            )
+          )
+        )
+      end
     end
 
     context 'without an explicit receiver' do
@@ -230,6 +266,21 @@ RSpec.describe Carbonate::Parser do
           s(:sym, :first_name)
         )
       )
+
+      should_parse(
+        from: '(def count (@get-count))',
+        to: s(:lvasgn, :count, s(:send, nil, :get_count))
+      )
+
+      context 'ending with a special char' do
+        should_parse(
+          from: '(@valid?)',
+          to: s(:send,
+            nil,
+            :valid?
+          )
+        )
+      end
     end
 
     context 'of a class constructor' do
