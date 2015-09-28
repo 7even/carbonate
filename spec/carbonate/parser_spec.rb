@@ -7,7 +7,7 @@ RSpec.describe Carbonate::Parser do
     end
 
     def should_parse(from:, to:, debug: false)
-      it 'parses the source into AST' do
+      it 'parses the source into AST', focus: debug do
         expect(subject.parse(from, debug)).to eq(to)
       end
     end
@@ -320,6 +320,18 @@ RSpec.describe Carbonate::Parser do
             s(:lvar, :last_name)
           ),
           :join
+        )
+      )
+    )
+
+    should_parse(
+      from: '(defmethod unnamed? [] (nil? @name))',
+      to: s(:def,
+        :unnamed?,
+        s(:args),
+        s(:send,
+          s(:ivar, :@name),
+          :nil?
         )
       )
     )

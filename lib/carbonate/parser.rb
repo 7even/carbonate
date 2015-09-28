@@ -271,7 +271,8 @@ module Carbonate
 
     # method defition
     # (defmethod full-name (join [first-name last-name]))
-    rule 'sexp : "(" DEFMETHOD S LVAR S arguments_list S forms ")"' do |sexp, _, _, _, method_name, _, args, _, forms, _|
+    rule 'sexp : "(" DEFMETHOD S LVAR S arguments_list S forms ")"
+               | "(" DEFMETHOD S METHOD_NAME S arguments_list S forms ")"' do |sexp, _, _, _, method_name, _, args, _, forms, _|
       method_body = wrap_in_begin(forms.value)
       sexp.value = s(:def, [method_name.value.to_sym, args.value, method_body])
     end
