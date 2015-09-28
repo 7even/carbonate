@@ -55,7 +55,7 @@ module Carbonate
         t
       end
 
-      token :SYMBOL, /:[A-Za-z0-9_-]+/ do |t|
+      token :SYMBOL, /:[A-Za-z0-9_-]+[!?=]?/ do |t|
         t.value = Parser.s(:sym, [Parser.identifier(t.value[1..-1])])
         t
       end

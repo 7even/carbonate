@@ -52,6 +52,11 @@ RSpec.describe Carbonate::Parser do
       from: ':some-symbol',
       to: s(:sym, :some_symbol)
     )
+
+    should_parse(
+      from: ':exists?',
+      to: s(:sym, :exists?)
+    )
   end
 
   context 'with regexps' do
