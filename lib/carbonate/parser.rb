@@ -75,6 +75,19 @@ module Carbonate
         t
       end
 
+      token :TRUE, /true/ do |t|
+        t.value = Parser.s(:true)
+        t
+      end
+
+      token :FALSE, /false/ do |t|
+        t.value = Parser.s(:false)
+        t
+      end
+
+      # nil (without special characters at the end)
+      token :NIL, /nil(?![!?=])/
+
       # characters treated as whitespace
       token :S, /[\s,]+/
 
@@ -151,6 +164,9 @@ module Carbonate
                | STRING
                | SYMBOL
                | REGEXP
+               | TRUE
+               | FALSE
+               | nil
                | array
                | hash
                | set
@@ -192,6 +208,10 @@ module Carbonate
     # @
     rule 'self : "@"' do |self_node, _|
       self_node.value = s(:self, [])
+    end
+
+    rule 'nil : NIL' do |nil_node, _|
+      nil_node.value = s(:nil, [])
     end
 
     # multiple S-expressions

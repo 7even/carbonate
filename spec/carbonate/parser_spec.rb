@@ -143,6 +143,12 @@ RSpec.describe Carbonate::Parser do
     )
   end
 
+  context 'with true, false and nil' do
+    should_parse(from: 'true', to: s(:true))
+    should_parse(from: 'false', to: s(:false))
+    should_parse(from: 'nil', to: s(:nil))
+  end
+
   context 'with self' do
     should_parse(
       from: '(+ 2 @)',
