@@ -43,7 +43,7 @@ module Carbonate
     end
 
     lexer do
-      literals '+-*/()[]{}#<@.'
+      literals '+-*/%=<>&|^~!()[]{}#@.'
 
       token :FLOAT, /\d+\.\d+/ do |t|
         t.value = Parser.s(:float, [t.value.to_f])
@@ -343,8 +343,18 @@ module Carbonate
     end
 
     # operator
-    rule 'operator : "+" | "-" | "*" | "/"' do |operator, operator_name|
-      operator.value = operator_name.value.to_sym
+    rule 'operator : "+" | "-" | "*" | "/" | "%" | "*" "*"
+                   | "=" | "!" "=" | "<" | ">" | "<" "=" | ">" "=" | "<" "=" ">" | "=" "=" "="
+                   | "&" | "|" | "^" | "~" | "<" "<" | ">" ">"
+                   | "&" "&" | "|" "|" | "!"' do |operator, *operator_chars|
+      operator_name = operator_chars.map(&:value).join
+
+      operator.value = case operator_name
+      when '='  then :==
+      when '&&' then :and
+      when '||' then :or
+      else           operator_name.to_sym
+      end
     end
 
     class FormatError < RuntimeError; end
