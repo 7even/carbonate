@@ -337,9 +337,14 @@ module Carbonate
       empty.value = []
     end
 
-    # function/method (may be operator)
-    rule 'func : "+" | "-" | "*" | "/" | METHOD_NAME | LVAR' do |func, function|
-      func.value = function.value.to_sym
+    # method name (may be operator)
+    rule 'func : operator | METHOD_NAME | LVAR' do |func, function|
+      func.value = function.value
+    end
+
+    # operator
+    rule 'operator : "+" | "-" | "*" | "/"' do |operator, operator_name|
+      operator.value = operator_name.value.to_sym
     end
 
     class FormatError < RuntimeError; end

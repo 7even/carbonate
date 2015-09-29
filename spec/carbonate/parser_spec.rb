@@ -119,7 +119,7 @@ RSpec.describe Carbonate::Parser do
     )
   end
 
-  context 'with basic arithmetic' do
+  context 'with operators' do
     should_parse(
       from: '(+ 2 2)',
       to: s(:send,
