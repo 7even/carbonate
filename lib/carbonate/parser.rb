@@ -283,8 +283,8 @@ module Carbonate
     end
 
     # singleton class definition
-    # (<< user (defmethod name [] @name)
-    rule 'sexp : "(" "<" "<" S form S forms ")"' do |sexp, _, _, _, _, form, _, forms, _|
+    # (<<- user (defmethod name [] @name)
+    rule 'sexp : "(" "<" "<" "-" S form S forms ")"' do |sexp, _, _, _, _, _, form, _, forms, _|
       singleton_body = wrap_in_begin(forms.value)
       sexp.value = s(:sclass, [form.value, singleton_body])
     end

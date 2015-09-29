@@ -458,7 +458,7 @@ RSpec.describe Carbonate::Parser do
   context 'with a singleton class definition' do
     should_parse(
       from: (<<-CRB),
-(<< user
+(<<- user
     (defmethod name []
       @name))
       CRB
