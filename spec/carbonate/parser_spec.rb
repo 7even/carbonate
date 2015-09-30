@@ -214,6 +214,98 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
+  context 'with an if statement' do
+    context 'without an else clause' do
+      should_parse(
+        from: '(if (valid? user) (save user))',
+        to: s(:if,
+          s(:send, s(:lvar, :user), :valid?),
+          s(:send, s(:lvar, :user), :save),
+          nil
+        )
+      )
+    end
+
+    context 'with an else clause' do
+      should_parse(
+        from: '(if (> a b) a b)',
+        to: s(:if,
+          s(:send, s(:lvar, :a), :>, s(:lvar, :b)),
+          s(:lvar, :a),
+          s(:lvar, :b)
+        )
+      )
+    end
+  end
+
+  context 'with an unless statement' do
+    should_parse(
+      from: '(unless (persisted? user) (save user))',
+      to: s(:if,
+        s(:send, s(:lvar, :user), :persisted?),
+        nil,
+        s(:send, s(:lvar, :user), :save)
+      )
+    )
+  end
+
+  context 'with a case statement' do
+    context 'without an else clause' do
+      should_parse(
+        from: '(case x 1 "one" 2 "two")',
+        to: s(:case,
+          s(:lvar, :x),
+          s(:when, s(:int, 1), s(:str, 'one')),
+          s(:when, s(:int, 2), s(:str, 'two')),
+          nil
+        )
+      )
+    end
+
+    context 'with an else clause' do
+      should_parse(
+        from: (<<-CRB),
+(case lang
+  "clojure" "great!"
+  "ruby" "cool"
+  "crap")
+      CRB
+        to: s(:case,
+          s(:lvar, :lang),
+          s(:when,
+            s(:str, 'clojure'),
+            s(:str, 'great!')
+          ),
+          s(:when,
+            s(:str, 'ruby'),
+            s(:str, 'cool')
+          ),
+          s(:str, 'crap')
+        )
+      )
+    end
+  end
+
+  context 'with a while loop' do
+    should_parse(
+      from: '(while (< x 5) (def x (+ x 1)))',
+      to: s(:while,
+        s(:send, s(:lvar, :x), :<, s(:int, 5)),
+        s(:lvasgn, :x, s(:send, s(:lvar, :x), :+, s(:int, 1)))
+      )
+    )
+  end
+
+  context 'with an until loop' do
+    should_parse(
+      from: '(until (>= x 5) (def x (+ x 1)))',
+      to: s(:until,
+        s(:send, s(:lvar, :x), :>=, s(:int, 5)),
+        s(:lvasgn, :x, s(:send, s(:lvar, :x), :+, s(:int, 1)))
+      )
+    )
+  end
+
   context 'with a method call' do
     context 'of an instance method' do
       should_parse(

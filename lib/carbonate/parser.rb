@@ -98,6 +98,12 @@ module Carbonate
       token :DEF,       /def/
       token :RETURN,    /return/
 
+      token :IF,     /if/
+      token :UNLESS, /unless/
+      token :CASE,   /case/
+      token :WHILE,  /while/
+      token :UNTIL,  /until/
+
       token :CONST, /([A-Z][A-Za-z0-9]+\.)*[A-Z][A-Za-z0-9]+/ do |t|
         t.value = t.value.split('.').inject(nil) do |namespace, part|
           Parser.s(:const, [namespace, part.to_sym])
@@ -217,6 +223,57 @@ module Carbonate
     # multiple S-expressions
     rule 'sexps : sexps S sexp | sexp' do |sexps, *sexps_array|
       sexps.value = without_spaces(sexps_array).flat_map(&:value)
+    end
+
+    # if statement
+    # can have only "then" clause:
+    #   (if (valid? user) (save user))
+    # or both "then" and "else" clauses:
+    #   (if (> a b) a b)
+    rule 'sexp : "(" IF S form S form ")"
+               | "(" IF S form S form S form ")"' do |sexp, _, _, _, condition, _, then_clause, _, else_clause, _|
+      sexp.value = s(:if, [condition.value, then_clause.value, else_clause && else_clause.value])
+    end
+
+    # unless statement
+    #   (unless (persisted? user) (save user))
+    rule 'sexp : "(" UNLESS S form S form ")"' do |sexp, _, _, _, condition, _, then_clause, _|
+      sexp.value = s(:if, [condition.value, nil, then_clause.value])
+    end
+
+    # case statement
+    #   (case x
+    #     1 "one"
+    #     2 "two")
+    # can have an "else" clause at the end:
+    #   (case lang
+    #     "clojure" "great!"
+    #     "ruby" "cool"
+    #     "crap")
+    rule 'sexp : "(" CASE S form S forms ")"' do |sexp, _, _, _, form, _, forms, _|
+      elements = if forms.value.count.even?
+        [*forms.value, nil]
+      else
+        forms.value
+      end
+
+      when_clauses = elements[0..-2].each_slice(2).map do |value, expr|
+        s(:when, [value, expr])
+      end
+
+      sexp.value = s(:case, [form.value, *when_clauses, elements.last])
+    end
+
+    # while loop
+    #   (while (< x 5) (def x (+ x 1)))
+    rule 'sexp : "(" WHILE S form S form ")"' do |sexp, _, _, _, condition, _, body, _|
+      sexp.value = s(:while, [condition.value, body.value])
+    end
+
+    # until loop
+    #   (until (>= x 5) (def x (+ x 1)))
+    rule 'sexp : "(" UNTIL S form S form ")"' do |sexp, _, _, _, condition, _, body, _|
+      sexp.value = s(:until, [condition.value, body.value])
     end
 
     # instance method call with an explicit receiver
