@@ -409,6 +409,17 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
+  context 'with a super call' do
+    context 'with explicit parameters' do
+      should_parse(from: '(super)', to: s(:super))
+      should_parse(from: '(super "parameter")', to: s(:super, s(:str, 'parameter')))
+    end
+
+    context 'with implicit parameters' do
+      should_parse(from: '(zsuper)', to: s(:zsuper))
+    end
+  end
+
   context 'with a method definition' do
     should_parse(
       from: (<<-CRB),

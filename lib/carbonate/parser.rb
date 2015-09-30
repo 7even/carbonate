@@ -97,6 +97,8 @@ module Carbonate
       token :DEFMETHOD, /defmethod/
       token :DEF,       /def/
       token :RETURN,    /return/
+      token :SUPER,     /super/
+      token :ZSUPER,    /zsuper/
 
       token :IF,     /if/
       token :UNLESS, /unless/
@@ -310,6 +312,21 @@ module Carbonate
     # (return 1)
     rule 'sexp : "(" RETURN S forms ")"' do |sexp, _, _, _, forms, _|
       sexp.value = s(:return, forms.value)
+    end
+
+    # call to super with explicit parameters
+    #   (super)
+    #   (super "parameter")
+    rule 'sexp : "(" SUPER ")"
+               | "(" SUPER S forms ")"' do |sexp, _, _, _, forms, _|
+      parameters = forms ? forms.value : []
+      sexp.value = s(:super, parameters)
+    end
+
+    # call to super with implicit parameters
+    #   (zsuper)
+    rule 'sexp : "(" ZSUPER ")"' do |sexp, _, _, _|
+      sexp.value = s(:zsuper, [])
     end
 
     # class constructor call
