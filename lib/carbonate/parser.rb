@@ -364,11 +364,11 @@ module Carbonate
     end
 
     # method defition
-    # (defmethod full-name (join [first-name last-name]))
-    rule 'sexp : "(" DEFMETHOD S LVAR S arguments_list S forms ")"
-               | "(" DEFMETHOD S METHOD_NAME S arguments_list S forms ")"' do |sexp, _, _, _, method_name, _, args, _, forms, _|
+    # (defmethod full-name [] (join [first-name last-name]))
+    rule 'sexp : "(" DEFMETHOD S LVAR S parameters_list S forms ")"
+               | "(" DEFMETHOD S METHOD_NAME S parameters_list S forms ")"' do |sexp, _, _, _, method_name, _, params, _, forms, _|
       method_body = wrap_in_begin(forms.value)
-      sexp.value = s(:def, [method_name.value.to_sym, args.value, method_body])
+      sexp.value = s(:def, [method_name.value.to_sym, params.value, method_body])
     end
 
     # local variable assignment
@@ -390,37 +390,37 @@ module Carbonate
       sexp.value = s(:send, [object.value, method_name, form.value])
     end
 
-    # method arguments list (in method definition)
+    # method parameters list (in method definition)
     # [a b c]
-    rule 'arguments_list : "[" arguments "]"' do |arguments_list, _, arguments, _|
-      arguments_list.value = s(:args, arguments.value)
+    rule 'parameters_list : "[" parameters "]"' do |parameters_list, _, parameters, _|
+      parameters_list.value = s(:args, parameters.value)
     end
 
-    # method arguments list with a splat argument at the end
+    # method parameters list with a splat parameter at the end
     #   [a b c & d]
-    rule 'arguments_list : "[" arguments S restargument "]"' do |arguments_list, _, args, _, restargument, _|
-      arguments_list.value = s(:args, [*args.value, restargument.value])
+    rule 'parameters_list : "[" parameters S restparameter "]"' do |parameters_list, _, args, _, restparameter, _|
+      parameters_list.value = s(:args, [*args.value, restparameter.value])
     end
 
-    # method arguments list consisting of one splat argument
-    #   [& arguments]
-    rule 'arguments_list : "[" restargument "]"' do |arguments_list, _, restargument, _|
-      arguments_list.value = s(:args, [restargument.value])
+    # method parameters list consisting of one splat parameter
+    #   [& parameters]
+    rule 'parameters_list : "[" restparameter "]"' do |parameters_list, _, restparameter, _|
+      parameters_list.value = s(:args, [restparameter.value])
     end
 
-    # multiple arguments
-    rule 'arguments : arguments S argument | argument | empty' do |arguments, *arguments_array|
-      arguments.value = without_spaces(arguments_array).flat_map(&:value)
+    # multiple parameters
+    rule 'parameters : parameters S parameter | parameter | empty' do |parameters, *parameters_array|
+      parameters.value = without_spaces(parameters_array).flat_map(&:value)
     end
 
-    # an argument can be a local variable
-    rule 'argument : LVAR' do |argument, identifier|
-      argument.value = s(:arg, [identifier.value])
+    # an parameter can be a local variable
+    rule 'parameter : LVAR' do |parameter, identifier|
+parameter.value = s(:arg, [identifier.value])
     end
 
-    # an argument can be a splat
-    rule 'restargument : "&" S LVAR' do |restargument, _, _, identifier|
-      restargument.value = s(:restarg, [identifier.value])
+    # an parameter can be a splat
+    rule 'restparameter : "&" S LVAR' do |restparameter, _, _, identifier|
+      restparameter.value = s(:restarg, [identifier.value])
     end
 
     # empty rule
