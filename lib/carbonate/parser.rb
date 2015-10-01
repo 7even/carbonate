@@ -282,26 +282,66 @@ module Carbonate
 
     # instance method call with an explicit receiver
     #   (+ 2 2)
-    rule 'sexp : "(" func S forms ")"' do |sexp, _, func, _, forms, _|
-      sexp.value = s(:send, [forms.value.first, func.value, *forms.value[1..-1]])
+    rule 'sexp : "(" func S form ")"
+               | "(" func S form S arguments_list ")"' do |sexp, _, func, _, receiver, _, arguments_list, _|
+      arguments = arguments_list && arguments_list.value || []
+      sexp.value = s(:send, [receiver.value, func.value, *arguments])
     end
 
     # class method call with an explicit receiver
     #   (User/find-by {:first-name "John"})
-    rule 'sexp : "(" CONST "/" func S forms ")"
-               | "(" CONST "/" func ")"' do |sexp, _, const, _, func, _, forms, _|
-      arguments = forms && forms.value || []
+    rule 'sexp : "(" CONST "/" func ")"
+               | "(" CONST "/" func S arguments_list ")"' do |sexp, _, const, _, func, _, arguments_list, _|
+      arguments = arguments_list && arguments_list.value || []
       sexp.value = s(:send, [const.value, func.value, *arguments])
     end
 
     # method call with an implicit receiver
     #   (@attr-reader :first-name)
-    rule 'sexp : "(" IVAR S forms ")"
-               | "(" IVAR ")"
-               | "(" SELF_METHOD_NAME S forms ")"
-               | "(" SELF_METHOD_NAME ")"' do |sexp, _, method_name, _, forms, _|
-      arguments = forms && forms.value || []
+    rule 'sexp : "(" IVAR ")"
+               | "(" IVAR S arguments_list ")"
+               | "(" SELF_METHOD_NAME ")"
+               | "(" SELF_METHOD_NAME S arguments_list ")"' do |sexp, _, method_name, _, arguments_list, _|
+      arguments = arguments_list && arguments_list.value || []
       sexp.value = s(:send, [nil, method_name.value[1..-1].to_sym, *arguments])
+    end
+
+    # call to super with explicit parameters
+    #   (super)
+    #   (super "argument")
+    rule 'sexp : "(" SUPER ")"
+               | "(" SUPER S arguments_list ")"' do |sexp, _, _, _, arguments_list, _|
+      arguments = arguments_list ? arguments_list.value : []
+      sexp.value = s(:super, arguments)
+    end
+
+    # call to super with implicit parameters
+    #   (zsuper)
+    rule 'sexp : "(" ZSUPER ")"' do |sexp, _, _, _|
+      sexp.value = s(:zsuper, [])
+    end
+
+    # class constructor call
+    #   (User. {:name "John"})
+    rule 'sexp : "(" CONST "." ")"
+               | "(" CONST "." S arguments_list ")"' do |sexp, _, const, _, _, arguments_list, _|
+      arguments = arguments_list ? arguments_list.value : []
+      sexp.value = s(:send, [const.value, :new, *arguments])
+    end
+
+    # arguments list (in method invocation)
+    rule 'arguments_list : forms' do |arguments_list, forms|
+      arguments_list.value = forms.value
+    end
+
+    # arguments list with a splat argument at the end
+    rule 'arguments_list : forms S "&" S form' do |arguments_list, forms, _, _, _, form|
+      arguments_list.value = [*forms.value, s(:splat, [form.value])]
+    end
+
+    # arguments list consisting of one splat argument
+    rule 'arguments_list : "&" S form' do |arguments_list, _, _, form|
+      arguments_list.value = [s(:splat, [form.value])]
     end
 
     # return statement without parameters
@@ -314,27 +354,6 @@ module Carbonate
     #   (return 1)
     rule 'sexp : "(" RETURN S forms ")"' do |sexp, _, _, _, forms, _|
       sexp.value = s(:return, forms.value)
-    end
-
-    # call to super with explicit parameters
-    #   (super)
-    #   (super "parameter")
-    rule 'sexp : "(" SUPER ")"
-               | "(" SUPER S forms ")"' do |sexp, _, _, _, forms, _|
-      parameters = forms ? forms.value : []
-      sexp.value = s(:super, parameters)
-    end
-
-    # call to super with implicit parameters
-    #   (zsuper)
-    rule 'sexp : "(" ZSUPER ")"' do |sexp, _, _, _|
-      sexp.value = s(:zsuper, [])
-    end
-
-    # class constructor call
-    #   (User. {:name "John"})
-    rule 'sexp : "(" CONST "." S forms ")"' do |sexp, _, const, _, _, forms|
-      sexp.value = s(:send, [const.value, :new, *forms.value])
     end
 
     # class definition w/o a parent class

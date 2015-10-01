@@ -327,6 +327,25 @@ RSpec.describe Carbonate::Parser do
           )
         )
       end
+
+      context 'with a splat argument' do
+        should_parse(
+          from: '(add-tags article & tags)',
+          to: s(:send, s(:lvar, :article), :add_tags, s(:splat, s(:lvar, :tags)))
+        )
+
+        should_parse(
+          from: '(sum calculator a b c & others)',
+          to: s(:send,
+            s(:lvar, :calculator),
+            :sum,
+            s(:lvar, :a),
+            s(:lvar, :b),
+            s(:lvar, :c),
+            s(:splat, s(:lvar, :others))
+          )
+        )
+      end
     end
 
     context 'of a class method' do
@@ -364,6 +383,25 @@ RSpec.describe Carbonate::Parser do
           )
         )
       end
+
+      context 'with a splat argument' do
+        should_parse(
+          from: '(Calculator/sum & numbers)',
+          to: s(:send, s(:const, nil, :Calculator), :sum, s(:splat, s(:lvar, :numbers)))
+        )
+
+        should_parse(
+          from: '(Calculator/sum a b c & others)',
+          to: s(:send,
+            s(:const, nil, :Calculator),
+            :sum,
+            s(:lvar, :a),
+            s(:lvar, :b),
+            s(:lvar, :c),
+            s(:splat, s(:lvar, :others))
+          )
+        )
+      end
     end
 
     context 'without an explicit receiver' do
@@ -390,9 +428,30 @@ RSpec.describe Carbonate::Parser do
           )
         )
       end
+
+      context 'with a splat argument' do
+        should_parse(
+          from: '(@sum & numbers)',
+          to: s(:send, nil, :sum, s(:splat, s(:lvar, :numbers)))
+        )
+
+        should_parse(
+          from: '(@sum a b c & others)',
+          to: s(:send,
+            nil,
+            :sum,
+            s(:lvar, :a),
+            s(:lvar, :b),
+            s(:lvar, :c),
+            s(:splat, s(:lvar, :others))
+          )
+        )
+      end
     end
 
     context 'of a class constructor' do
+      should_parse(from: '(User.)', to: s(:send, s(:const, nil, :User), :new))
+
       should_parse(
         from: '(User. {:name "John"})',
         to: s(:send,
