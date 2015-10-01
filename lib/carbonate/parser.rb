@@ -155,13 +155,13 @@ module Carbonate
     end
 
     # form can be a local variable
-    # user
+    #   user
     rule 'form : LVAR' do |form, lvar|
       form.value = s(:lvar, [lvar.value])
     end
 
     # form can be an instance variable
-    # @user
+    #   @user
     rule 'form : IVAR' do |form, ivar|
       form.value = s(:ivar, [ivar.value])
     end
@@ -185,13 +185,13 @@ module Carbonate
     end
 
     # array
-    # [1 2 3]
+    #   [1 2 3]
     rule 'array : "[" forms "]"' do |array, _, sexps, _|
       array.value = s(:array, sexps.value)
     end
 
     # hash
-    # {:first-name "Rich", :last-name "Hickey"}
+    #   {:first-name "Rich", :last-name "Hickey"}
     # commas are optional, elements count must be even
     rule 'hash : "{" forms "}"' do |hash, _, forms, _|
       raise FormatError.new('Odd number of elements in a hash') if forms.value.count.odd?
@@ -201,7 +201,7 @@ module Carbonate
     end
 
     # set
-    # #{123 "string" :symbol}
+    #   #{123 "string" :symbol}
     rule 'set : "#" "{" forms "}"' do |set, _, _, forms, _|
       set.value = s(:send,
         [
@@ -213,11 +213,13 @@ module Carbonate
     end
 
     # self
-    # @
+    #   @
     rule 'self : "@"' do |self_node, _|
       self_node.value = s(:self, [])
     end
 
+    # nil
+    #   nil
     rule 'nil : NIL' do |nil_node, _|
       nil_node.value = s(:nil, [])
     end
@@ -279,13 +281,13 @@ module Carbonate
     end
 
     # instance method call with an explicit receiver
-    # (+ 2 2)
+    #   (+ 2 2)
     rule 'sexp : "(" func S forms ")"' do |sexp, _, func, _, forms, _|
       sexp.value = s(:send, [forms.value.first, func.value, *forms.value[1..-1]])
     end
 
     # class method call with an explicit receiver
-    # (User/find-by {:first-name "John"})
+    #   (User/find-by {:first-name "John"})
     rule 'sexp : "(" CONST "/" func S forms ")"
                | "(" CONST "/" func ")"' do |sexp, _, const, _, func, _, forms, _|
       arguments = forms && forms.value || []
@@ -293,7 +295,7 @@ module Carbonate
     end
 
     # method call with an implicit receiver
-    # (@attr-reader :first-name)
+    #   (@attr-reader :first-name)
     rule 'sexp : "(" IVAR S forms ")"
                | "(" IVAR ")"
                | "(" SELF_METHOD_NAME S forms ")"
@@ -303,13 +305,13 @@ module Carbonate
     end
 
     # return statement without parameters
-    # (return)
+    #   (return)
     rule 'sexp : "(" RETURN ")"' do |sexp, _, _, _|
       sexp.value = s(:return, [])
     end
 
     # return statement with parameters
-    # (return 1)
+    #   (return 1)
     rule 'sexp : "(" RETURN S forms ")"' do |sexp, _, _, _, forms, _|
       sexp.value = s(:return, forms.value)
     end
@@ -330,41 +332,41 @@ module Carbonate
     end
 
     # class constructor call
-    # (User. {:name "John"})
+    #   (User. {:name "John"})
     rule 'sexp : "(" CONST "." S forms ")"' do |sexp, _, const, _, _, forms|
       sexp.value = s(:send, [const.value, :new, *forms.value])
     end
 
     # class definition w/o a parent class
-    # (defclass User (class body))
+    #   (defclass User (class body))
     rule 'sexp : "(" DEFCLASS S CONST S forms ")"' do |sexp, _, _, _, const, _, forms, _|
       class_body = wrap_in_begin(forms.value)
       sexp.value = s(:class, [const.value, nil, class_body])
     end
 
     # class definition with a parent class
-    # (defclass User < Base (class body))
+    #   (defclass User < Base (class body))
     rule 'sexp : "(" DEFCLASS S CONST S "<" S form S forms ")"' do |sexp, _, _, _, const, _, _, _, form, _, forms|
       class_body = wrap_in_begin(forms.value)
       sexp.value = s(:class, [const.value, form.value, class_body])
     end
 
     # module definition
-    # (defmodule Enumerable (module body ...))
+    #   (defmodule Enumerable (module body ...))
     rule 'sexp : "(" DEFMODULE S CONST S forms ")"' do |sexp, _, _, _, const, _, forms, _|
       module_body = wrap_in_begin(forms.value)
       sexp.value = s(:module, [const.value, module_body])
     end
 
     # singleton class definition
-    # (<<- user (defmethod name [] @name)
+    #   (<<- user (defmethod name [] @name)
     rule 'sexp : "(" "<" "<" "-" S form S forms ")"' do |sexp, _, _, _, _, _, form, _, forms, _|
       singleton_body = wrap_in_begin(forms.value)
       sexp.value = s(:sclass, [form.value, singleton_body])
     end
 
     # method defition
-    # (defmethod full-name [] (join [first-name last-name]))
+    #   (defmethod full-name [] (join [first-name last-name]))
     rule 'sexp : "(" DEFMETHOD S LVAR S parameters_list S forms ")"
                | "(" DEFMETHOD S METHOD_NAME S parameters_list S forms ")"' do |sexp, _, _, _, method_name, _, params, _, forms, _|
       method_body = wrap_in_begin(forms.value)
@@ -372,26 +374,26 @@ module Carbonate
     end
 
     # local variable assignment
-    # (def username "7even")
+    #   (def username "7even")
     rule 'sexp : "(" DEF S LVAR S form ")"' do |sexp, _, _, _, var_name, _, form, _|
       sexp.value = s(:lvasgn, [var_name.value, form.value])
     end
 
     # instance variable assignment
-    # (def @age 30)
+    #   (def @age 30)
     rule 'sexp : "(" DEF S IVAR S form ")"' do |sexp, _, _, _, var_name, _, form, _|
       sexp.value = s(:ivasgn, [var_name.value, form.value])
     end
 
     # object attribute assignment
-    # (def user.name "John")
+    #   (def user.name "John")
     rule 'sexp : "(" DEF S form "." LVAR S form ")"' do |sexp, _, _, _, object, _, lvar, _, form, _|
       method_name = "#{lvar}=".to_sym
       sexp.value = s(:send, [object.value, method_name, form.value])
     end
 
     # method parameters list (in method definition)
-    # [a b c]
+    #   [a b c]
     rule 'parameters_list : "[" parameters "]"' do |parameters_list, _, parameters, _|
       parameters_list.value = s(:args, parameters.value)
     end
