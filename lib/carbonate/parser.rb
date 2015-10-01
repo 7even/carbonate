@@ -55,7 +55,7 @@ module Carbonate
         t
       end
 
-      token :SYMBOL, /:[A-Za-z0-9_-]+[!?=]?/ do |t|
+      token :SYMBOL, /:([A-Za-z0-9_-]+[!?=]?|[+\-*\/])/ do |t|
         t.value = Parser.s(:sym, [Parser.identifier(t.value[1..-1])])
         t
       end
@@ -396,6 +396,18 @@ module Carbonate
       arguments_list.value = s(:args, arguments.value)
     end
 
+    # method arguments list with a splat argument at the end
+    #   [a b c & d]
+    rule 'arguments_list : "[" arguments S restargument "]"' do |arguments_list, _, args, _, restargument, _|
+      arguments_list.value = s(:args, [*args.value, restargument.value])
+    end
+
+    # method arguments list consisting of one splat argument
+    #   [& arguments]
+    rule 'arguments_list : "[" restargument "]"' do |arguments_list, _, restargument, _|
+      arguments_list.value = s(:args, [restargument.value])
+    end
+
     # multiple arguments
     rule 'arguments : arguments S argument | argument | empty' do |arguments, *arguments_array|
       arguments.value = without_spaces(arguments_array).flat_map(&:value)
@@ -404,6 +416,11 @@ module Carbonate
     # an argument can be a local variable
     rule 'argument : LVAR' do |argument, identifier|
       argument.value = s(:arg, [identifier.value])
+    end
+
+    # an argument can be a splat
+    rule 'restargument : "&" S LVAR' do |restargument, _, _, identifier|
+      restargument.value = s(:restarg, [identifier.value])
     end
 
     # empty rule

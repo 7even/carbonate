@@ -450,6 +450,24 @@ RSpec.describe Carbonate::Parser do
         )
       )
     )
+
+    should_parse(
+      from: '(defmethod sum [& numbers] (reduce numbers :+))',
+      to: s(:def,
+        :sum,
+        s(:args, s(:restarg, :numbers)),
+        s(:send, s(:lvar, :numbers), :reduce, s(:sym, :+))
+      )
+    )
+
+    should_parse(
+      from: '(defmethod output [a b c & d] [a b c d])',
+      to: s(:def,
+        :output,
+        s(:args, s(:arg, :a), s(:arg, :b), s(:arg, :c), s(:restarg, :d)),
+        s(:array, s(:lvar, :a), s(:lvar, :b), s(:lvar, :c), s(:lvar, :d))
+      )
+    )
   end
 
   context 'with a return statement' do
