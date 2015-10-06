@@ -346,6 +346,42 @@ RSpec.describe Carbonate::Parser do
           )
         )
       end
+
+      context 'with a block' do
+        should_parse(
+          from: '(map users %([user] (upcase (name user))))',
+          to: s(:block,
+            s(:send, s(:lvar, :users), :map),
+            s(:args, s(:arg, :user)),
+            s(:send, s(:send, s(:lvar, :user), :name), :upcase)
+          )
+        )
+
+        should_parse(
+          from: '(each-slice users 3 %([user] (@p user)))',
+          to: s(:block,
+            s(:send, s(:lvar, :users), :each_slice, s(:int, 3)),
+            s(:args, s(:arg, :user)),
+            s(:send, nil, :p, s(:lvar, :user))
+          )
+        )
+      end
+
+      context 'with two blocks' do
+        it 'raises a FormatError' do
+          expect {
+            subject.parse('(map users %([user] (name user)) %([user] (email user)))')
+          }.to raise_error(Carbonate::Parser::FormatError)
+        end
+      end
+
+      context 'with block in non-last position' do
+        it 'raises a FormatError' do
+          expect {
+            subject.parse('(map users %([user] (name user)) 5)')
+          }.to raise_error(Carbonate::Parser::FormatError)
+        end
+      end
     end
 
     context 'of a class method' do

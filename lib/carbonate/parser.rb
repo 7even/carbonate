@@ -18,6 +18,18 @@ module Carbonate
       end
     end
 
+    def destructure_arguments(arguments)
+      if arguments[0..-2].any? { |arg| arg.type == :pseudo_block }
+        raise FormatError, 'You can specify only one block per method call (as the last argument)'
+      end
+
+      if !arguments.empty? && arguments.last.type == :pseudo_block
+        [arguments[0..-2], arguments.last]
+      else
+        [arguments, nil]
+      end
+    end
+
     def s(type, children)
       self.class.s(type, children)
     end
@@ -284,8 +296,14 @@ module Carbonate
     #   (+ 2 2)
     rule 'sexp : "(" func S form ")"
                | "(" func S form S arguments_list ")"' do |sexp, _, func, _, receiver, _, arguments_list, _|
-      arguments = arguments_list && arguments_list.value || []
-      sexp.value = s(:send, [receiver.value, func.value, *arguments])
+      arguments, block = destructure_arguments(arguments_list && arguments_list.value || [])
+      send_node = s(:send, [receiver.value, func.value, *arguments])
+
+      sexp.value = if block.nil?
+        send_node
+      else
+        s(:block, [send_node, *block.children])
+      end
     end
 
     # class method call with an explicit receiver
@@ -329,19 +347,25 @@ module Carbonate
       sexp.value = s(:send, [const.value, :new, *arguments])
     end
 
-    # arguments list (in method invocation)
-    rule 'arguments_list : forms' do |arguments_list, forms|
-      arguments_list.value = forms.value
+    # multiple arguments (in method invocation)
+    rule 'arguments_list : arguments_list S argument | argument | empty' do |arguments_list, *arguments|
+      arguments_list.value = without_spaces(arguments).flat_map(&:value)
     end
 
-    # arguments list with a splat argument at the end
-    rule 'arguments_list : forms S "&" S form' do |arguments_list, forms, _, _, _, form|
-      arguments_list.value = [*forms.value, s(:splat, [form.value])]
+    # an argument can be a simple form
+    rule 'argument : form' do |argument, form|
+      argument.value = form.value
     end
 
-    # arguments list consisting of one splat argument
-    rule 'arguments_list : "&" S form' do |arguments_list, _, _, form|
-      arguments_list.value = [s(:splat, [form.value])]
+    # an argument can be splat
+    rule 'argument : "&" S form' do |argument, _, _, form|
+      argument.value = s(:splat, [form.value])
+    end
+
+    # the last argument can be an inline block
+    rule 'argument : "%" "(" parameters_list S forms ")"' do |argument, _, _, params, _, forms, _|
+      block_body = wrap_in_begin(forms.value)
+      argument.value = s(:pseudo_block, [params.value, block_body])
     end
 
     # return statement without parameters
