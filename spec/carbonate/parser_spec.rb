@@ -438,6 +438,17 @@ RSpec.describe Carbonate::Parser do
           )
         )
       end
+
+      context 'with a block' do
+        should_parse(
+          from: '(User/find-each %([user] (@p (name user))))',
+          to: s(:block,
+            s(:send, s(:const, nil, :User), :find_each),
+            s(:args, s(:arg, :user)),
+            s(:send, nil, :p, s(:send, s(:lvar, :user), :name))
+          )
+        )
+      end
     end
 
     context 'without an explicit receiver' do
@@ -483,6 +494,17 @@ RSpec.describe Carbonate::Parser do
           )
         )
       end
+
+      context 'with a block' do
+        should_parse(
+          from: '(@each %([element] (@p element)))',
+          to: s(:block,
+            s(:send, nil, :each),
+            s(:args, s(:arg, :element)),
+            s(:send, nil, :p, s(:lvar, :element))
+          )
+        )
+      end
     end
 
     context 'of a class constructor' do
@@ -501,6 +523,17 @@ RSpec.describe Carbonate::Parser do
           )
         )
       )
+
+      context 'with a block' do
+        should_parse(
+          from: '(User. %([user] (def user.name "John")))',
+          to: s(:block,
+            s(:send, s(:const, nil, :User), :new),
+            s(:args, s(:arg, :user)),
+            s(:send, s(:lvar, :user), :name=, s(:str, 'John'))
+          )
+        )
+      end
     end
   end
 
@@ -508,10 +541,32 @@ RSpec.describe Carbonate::Parser do
     context 'with explicit parameters' do
       should_parse(from: '(super)', to: s(:super))
       should_parse(from: '(super "parameter")', to: s(:super, s(:str, 'parameter')))
+
+      context 'with a block' do
+        should_parse(
+          from: '(super 123 %([object] (@puts object)))',
+          to: s(:block,
+            s(:super, s(:int, 123)),
+            s(:args, s(:arg, :object)),
+            s(:send, nil, :puts, s(:lvar, :object))
+          )
+        )
+      end
     end
 
     context 'with implicit parameters' do
       should_parse(from: '(zsuper)', to: s(:zsuper))
+
+      context 'with a block' do
+        should_parse(
+          from: '(zsuper %([object] (@puts object)))',
+          to: s(:block,
+            s(:zsuper),
+            s(:args, s(:arg, :object)),
+            s(:send, nil, :puts, s(:lvar, :object))
+          )
+        )
+      end
     end
   end
 

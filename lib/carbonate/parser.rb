@@ -310,8 +310,14 @@ module Carbonate
     #   (User/find-by {:first-name "John"})
     rule 'sexp : "(" CONST "/" func ")"
                | "(" CONST "/" func S arguments_list ")"' do |sexp, _, const, _, func, _, arguments_list, _|
-      arguments = arguments_list && arguments_list.value || []
-      sexp.value = s(:send, [const.value, func.value, *arguments])
+      arguments, block = destructure_arguments(arguments_list && arguments_list.value || [])
+      send_node = s(:send, [const.value, func.value, *arguments])
+
+      sexp.value = if block.nil?
+        send_node
+      else
+        s(:block, [send_node, *block.children])
+      end
     end
 
     # method call with an implicit receiver
@@ -320,8 +326,28 @@ module Carbonate
                | "(" IVAR S arguments_list ")"
                | "(" SELF_METHOD_NAME ")"
                | "(" SELF_METHOD_NAME S arguments_list ")"' do |sexp, _, method_name, _, arguments_list, _|
-      arguments = arguments_list && arguments_list.value || []
-      sexp.value = s(:send, [nil, method_name.value[1..-1].to_sym, *arguments])
+      arguments, block = destructure_arguments(arguments_list && arguments_list.value || [])
+      send_node = s(:send, [nil, method_name.value[1..-1].to_sym, *arguments])
+
+      sexp.value = if block.nil?
+        send_node
+      else
+        s(:block, [send_node, *block.children])
+      end
+    end
+
+    # class constructor call
+    #   (User. {:name "John"})
+    rule 'sexp : "(" CONST "." ")"
+               | "(" CONST "." S arguments_list ")"' do |sexp, _, const, _, _, arguments_list, _|
+      arguments, block = destructure_arguments(arguments_list && arguments_list.value || [])
+      send_node = s(:send, [const.value, :new, *arguments])
+
+      sexp.value = if block.nil?
+        send_node
+      else
+        s(:block, [send_node, *block.children])
+      end
     end
 
     # call to super with explicit parameters
@@ -329,22 +355,28 @@ module Carbonate
     #   (super "argument")
     rule 'sexp : "(" SUPER ")"
                | "(" SUPER S arguments_list ")"' do |sexp, _, _, _, arguments_list, _|
-      arguments = arguments_list ? arguments_list.value : []
-      sexp.value = s(:super, arguments)
+      arguments, block = destructure_arguments(arguments_list && arguments_list.value || [])
+      send_node = s(:super, arguments)
+
+      sexp.value = if block.nil?
+        send_node
+      else
+        s(:block, [send_node, *block.children])
+      end
     end
 
     # call to super with implicit parameters
     #   (zsuper)
-    rule 'sexp : "(" ZSUPER ")"' do |sexp, _, _, _|
-      sexp.value = s(:zsuper, [])
-    end
+    rule 'sexp : "(" ZSUPER ")"
+               | "(" ZSUPER S arguments_list ")"' do |sexp, _, _, _, arguments_list, _|
+      arguments, block = destructure_arguments(arguments_list && arguments_list.value || [])
+      send_node = s(:zsuper, [])
 
-    # class constructor call
-    #   (User. {:name "John"})
-    rule 'sexp : "(" CONST "." ")"
-               | "(" CONST "." S arguments_list ")"' do |sexp, _, const, _, _, arguments_list, _|
-      arguments = arguments_list ? arguments_list.value : []
-      sexp.value = s(:send, [const.value, :new, *arguments])
+      sexp.value = if block.nil?
+        send_node
+      else
+        s(:block, [send_node, *block.children])
+      end
     end
 
     # multiple arguments (in method invocation)
