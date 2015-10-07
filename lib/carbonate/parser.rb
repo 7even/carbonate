@@ -19,7 +19,7 @@ module Carbonate
     end
 
     def destructure_arguments(arguments)
-      if arguments[0..-2].any? { |arg| arg.type == :pseudo_block }
+      if arguments[0..-2].any? { |arg| [:pseudo_block, :block_pass].include?(arg.type) }
         raise FormatError, 'You can specify only one block per method call (as the last argument)'
       end
 
@@ -392,6 +392,11 @@ module Carbonate
     # an argument can be splat
     rule 'argument : "&" S form' do |argument, _, _, form|
       argument.value = s(:splat, [form.value])
+    end
+
+    # the last argument can be passed as a block
+    rule 'argument : "%" S form' do |argument, _, _, form|
+      argument.value = s(:block_pass, [form.value])
     end
 
     # the last argument can be an inline block

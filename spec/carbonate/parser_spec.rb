@@ -347,6 +347,26 @@ RSpec.describe Carbonate::Parser do
         )
       end
 
+      context 'with a form passed as a block' do
+        should_parse(
+          from: '(map users % :name)',
+          to: s(:send,
+            s(:lvar, :users),
+            :map,
+            s(:block_pass, s(:sym, :name))
+          )
+        )
+
+        should_parse(
+          from: '(each users % some-proc)',
+          to: s(:send,
+            s(:lvar, :users),
+            :each,
+            s(:block_pass, s(:lvar, :some_proc))
+          )
+        )
+      end
+
       context 'with a block' do
         should_parse(
           from: '(map users %([user] (upcase (name user))))',
