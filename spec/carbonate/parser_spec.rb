@@ -671,6 +671,24 @@ RSpec.describe Carbonate::Parser do
         s(:array, s(:lvar, :a), s(:lvar, :b), s(:lvar, :c), s(:lvar, :d))
       )
     )
+
+    should_parse(
+      from: (<<-CRB),
+(defmethod each [% block]
+  (@yield 1)
+  (@yield 2)
+  (@yield 3))
+      CRB
+      to: s(:def,
+        :each,
+        s(:args, s(:blockarg, :block)),
+        s(:begin,
+          s(:send, nil, :yield, s(:int, 1)),
+          s(:send, nil, :yield, s(:int, 2)),
+          s(:send, nil, :yield, s(:int, 3))
+        )
+      )
+    )
   end
 
   context 'with a return statement' do

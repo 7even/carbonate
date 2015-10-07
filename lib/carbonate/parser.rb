@@ -488,16 +488,16 @@ module Carbonate
       parameters_list.value = s(:args, parameters.value)
     end
 
-    # method parameters list with a splat parameter at the end
-    #   [a b c & d]
-    rule 'parameters_list : "[" parameters S restparameter "]"' do |parameters_list, _, args, _, restparameter, _|
-      parameters_list.value = s(:args, [*args.value, restparameter.value])
+    # method parameters list with a block parameter at the end
+    #   [a b c % d]
+    rule 'parameters_list : "[" parameters S block_parameter "]"' do |parameters_list, _, args, _, block_parameter, _|
+      parameters_list.value = s(:args, [*args.value, block_parameter.value])
     end
 
-    # method parameters list consisting of one splat parameter
-    #   [& parameters]
-    rule 'parameters_list : "[" restparameter "]"' do |parameters_list, _, restparameter, _|
-      parameters_list.value = s(:args, [restparameter.value])
+    # method parameters list consisting of one block parameter
+    #   [% parameters]
+    rule 'parameters_list : "[" block_parameter "]"' do |parameters_list, _, block_parameter, _|
+      parameters_list.value = s(:args, [block_parameter.value])
     end
 
     # multiple parameters
@@ -505,14 +505,19 @@ module Carbonate
       parameters.value = without_spaces(parameters_array).flat_map(&:value)
     end
 
-    # an parameter can be a local variable
+    # a parameter can be a local variable
     rule 'parameter : LVAR' do |parameter, identifier|
 parameter.value = s(:arg, [identifier.value])
     end
 
-    # an parameter can be a splat
-    rule 'restparameter : "&" S LVAR' do |restparameter, _, _, identifier|
-      restparameter.value = s(:restarg, [identifier.value])
+    # a parameter can be a splat
+    rule 'parameter : "&" S LVAR' do |parameter, _, _, identifier|
+      parameter.value = s(:restarg, [identifier.value])
+    end
+
+    # the last parameter can be a block
+    rule 'block_parameter : "%" S LVAR' do |block_parameter, _, _, identifier|
+      block_parameter.value = s(:blockarg, [identifier.value])
     end
 
     # empty rule
