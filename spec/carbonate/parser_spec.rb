@@ -365,6 +365,39 @@ RSpec.describe Carbonate::Parser do
             s(:send, nil, :p, s(:lvar, :user))
           )
         )
+
+        should_parse(
+          from: '(each-slice users 3 %([user] (@p (name user)) (@p (email user))))',
+          to: s(:block,
+            s(:send, s(:lvar, :users), :each_slice, s(:int, 3)),
+            s(:args, s(:arg, :user)),
+            s(:begin,
+              s(:send, nil, :p, s(:send, s(:lvar, :user), :name)),
+              s(:send, nil, :p, s(:send, s(:lvar, :user), :email))
+            )
+          )
+        )
+
+        should_parse(
+          from: '(times 5 %(@puts "Hello"))',
+          to: s(:block,
+            s(:send, s(:int, 5), :times),
+            s(:args),
+            s(:send, nil, :puts, s(:str, 'Hello'))
+          )
+        )
+
+        should_parse(
+          from: '(times 5 %((@puts "Hello") (@puts "Goodbye")))',
+          to: s(:block,
+            s(:send, s(:int, 5), :times),
+            s(:args),
+            s(:begin,
+              s(:send, nil, :puts, s(:str, 'Hello')),
+              s(:send, nil, :puts, s(:str, 'Goodbye'))
+            )
+          )
+        )
       end
 
       context 'with two blocks' do

@@ -400,6 +400,16 @@ module Carbonate
       argument.value = s(:pseudo_block, [params.value, block_body])
     end
 
+    # the last argument can also be an inline block without parameters
+    rule 'argument : "%" form
+                   | "%" "(" forms ")"' do |argument, _, *forms_array|
+      body = forms_array.reject do |element|
+        ['(', ')'].include?(element.type)
+      end.flat_map(&:value)
+
+      argument.value = s(:pseudo_block, [s(:args, []), wrap_in_begin(body)])
+    end
+
     # return statement without parameters
     #   (return)
     rule 'sexp : "(" RETURN ")"' do |sexp, _, _, _|
