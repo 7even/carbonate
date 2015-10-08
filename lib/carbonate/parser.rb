@@ -190,6 +190,8 @@ module Carbonate
                | array
                | hash
                | set
+               | irange
+               | erange
                | CONST
                | self
                | sexp' do |form, element|
@@ -222,6 +224,18 @@ module Carbonate
           s(:array, forms.value)
         ]
       )
+    end
+
+    # inclusive range
+    #   1..10
+    rule 'irange : form "." "." form' do |range, first, _, _, last|
+      range.value = s(:irange, [first.value, last.value])
+    end
+
+    # exclusive range
+    #   1...11
+    rule 'erange : form "." "." "." form' do |range, first, _, _, _, last|
+      range.value = s(:erange, [first.value, last.value])
     end
 
     # self

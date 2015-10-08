@@ -120,6 +120,11 @@ RSpec.describe Carbonate::Parser do
     )
   end
 
+  context 'with ranges' do
+    should_parse(from: '1..10',  to: s(:irange, s(:int, 1), s(:int, 10)))
+    should_parse(from: '1...11', to: s(:erange, s(:int, 1), s(:int, 11)))
+  end
+
   context 'with operators' do
     should_parse(from: '(+ 2 2)',  to: s(:send, s(:int, 2), :+, s(:int, 2)))
     should_parse(from: '(- 2 1)',  to: s(:send, s(:int, 2), :-, s(:int, 1)))
