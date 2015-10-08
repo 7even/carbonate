@@ -463,6 +463,14 @@ module Carbonate
       sexp.value = s(:def, [method_name.value.to_sym, params.value, method_body])
     end
 
+    # method defition without parameters
+    #   (defmethod email @email)
+    rule 'sexp : "(" DEFMETHOD S LVAR S forms ")"
+               | "(" DEFMETHOD S METHOD_NAME S forms ")"' do |sexp, _, _, _, method_name, _, forms, _|
+      method_body = wrap_in_begin(forms.value)
+      sexp.value = s(:def, [method_name.value.to_sym, s(:args, []), method_body])
+    end
+
     # lambda definition
     #   (-> [user] (email user))
     rule 'sexp : "(" "-" ">" S parameters_list S forms ")"' do |sexp, _, _, _, _, params, _, forms, _|

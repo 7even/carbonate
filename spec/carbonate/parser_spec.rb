@@ -643,7 +643,7 @@ RSpec.describe Carbonate::Parser do
     )
 
     should_parse(
-      from: '(defmethod unnamed? [] (nil? @name))',
+      from: '(defmethod unnamed? (nil? @name))',
       to: s(:def,
         :unnamed?,
         s(:args),
