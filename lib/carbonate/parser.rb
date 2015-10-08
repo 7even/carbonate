@@ -101,7 +101,10 @@ module Carbonate
       token :NIL, /nil(?![!?=])/
 
       # characters treated as whitespace
-      token :S, /[\s,]+/
+      token :S, /[\s,]+/ do |t|
+        t.lexer.lineno += t.value.count("\n")
+        t
+      end
 
       # keywords
       token :DEFCLASS,  /defclass/
@@ -578,6 +581,23 @@ parameter.value = s(:arg, [identifier.value])
       when '&&' then :and
       when '||' then :or
       else           operator_name.to_sym
+      end
+    end
+
+    on_error -> (token) do
+      if token.nil?
+        fail FormatError, 'Input ends unexpectedly'
+      else
+        token_string = if token.value.respond_to?(:children)
+          token.value.children.first
+        else
+          token.value
+        end
+
+        message = "Unexpected token '#{token_string}'"
+        message << " at line #{token.location_info[:lineno].succ}"
+
+        fail FormatError, message
       end
     end
 

@@ -856,4 +856,22 @@ RSpec.describe Carbonate::Parser do
       )
     )
   end
+
+  context 'with a parsing error' do
+    it 'raises a FormatError' do
+      expected_message = "Unexpected token 'w' at line 1"
+
+      expect {
+        subject.parse('(- 1 2w)')
+      }.to raise_error(Carbonate::Parser::FormatError, expected_message)
+    end
+
+    context 'at the end of the input' do
+      it 'raises a FormatError' do
+        expect {
+          subject.parse('(save user')
+        }.to raise_error(Carbonate::Parser::FormatError, 'Input ends unexpectedly')
+      end
+    end
+  end
 end
