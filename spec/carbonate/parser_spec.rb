@@ -857,6 +857,14 @@ RSpec.describe Carbonate::Parser do
     )
   end
 
+  context 'with a tokenizing error' do
+    it 'raises a FormatError' do
+      expect {
+        subject.parse('(@puts a;)')
+      }.to raise_error("Illegal character ';' at line 1")
+    end
+  end
+
   context 'with a parsing error' do
     it 'raises a FormatError' do
       expected_message = "Unexpected token 'w' at line 1"
