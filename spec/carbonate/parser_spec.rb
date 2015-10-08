@@ -861,7 +861,7 @@ RSpec.describe Carbonate::Parser do
     it 'raises a FormatError' do
       expect {
         subject.parse('(@puts a;)')
-      }.to raise_error("Illegal character ';' at line 1")
+      }.to raise_error("Unknown character ';' at line 1")
     end
   end
 

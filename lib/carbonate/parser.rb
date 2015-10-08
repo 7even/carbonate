@@ -153,7 +153,7 @@ module Carbonate
       end
 
       on_error do |t|
-        fail FormatError, "Illegal character '#{t.value}' at line #{t.lexer.lineno.succ}"
+        fail FormatError, "Unknown character '#{t.value}' at line #{t.lexer.lineno.succ}"
       end
     end
 
