@@ -691,6 +691,41 @@ RSpec.describe Carbonate::Parser do
     )
   end
 
+  context 'with a lambda definition' do
+    should_parse(
+      from: '(def my-lambda (-> [user] (email user)))',
+      to: s(:lvasgn,
+        :my_lambda,
+        s(:block,
+          s(:send, nil, :lambda),
+          s(:args, s(:arg, :user)),
+          s(:send, s(:lvar, :user), :email)
+        )
+      )
+    )
+
+    should_parse(
+      from: '(-> [user] (@p user) (save user))',
+      to: s(:block,
+        s(:send, nil, :lambda),
+        s(:args, s(:arg, :user)),
+        s(:begin,
+          s(:send, nil, :p, s(:lvar, :user)),
+          s(:send, s(:lvar, :user), :save)
+        )
+      )
+    )
+
+    should_parse(
+      from: '(-> (@puts "Hello world!"))',
+      to: s(:block,
+        s(:send, nil, :lambda),
+        s(:args),
+        s(:send, nil, :puts, s(:str, 'Hello world!'))
+      )
+    )
+  end
+
   context 'with a return statement' do
     context 'without arguments' do
       should_parse(
