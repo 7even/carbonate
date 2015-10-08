@@ -57,12 +57,12 @@ module Carbonate
     lexer do
       literals '+-*/%=<>&|^~!()[]{}#@.'
 
-      token :FLOAT, /\d+\.\d+/ do |t|
+      token :FLOAT, /-?\d+\.\d+/ do |t|
         t.value = Parser.s(:float, [t.value.to_f])
         t
       end
 
-      token :INTEGER, /\d+/ do |t|
+      token :INTEGER, /-?\d+/ do |t|
         t.value = Parser.s(:int, [t.value.to_i])
         t
       end

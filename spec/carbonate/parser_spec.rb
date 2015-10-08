@@ -16,17 +16,13 @@ RSpec.describe Carbonate::Parser do
 
   context 'with numbers' do
     context 'integer' do
-      should_parse(
-        from: '1',
-        to: s(:int, 1)
-      )
+      should_parse(from: '1',  to: s(:int, 1))
+      should_parse(from: '-1', to: s(:int, -1))
     end
 
     context 'float' do
-      should_parse(
-        from: '3.14',
-        to: s(:float, 3.14)
-      )
+      should_parse(from: '3.14',  to: s(:float, 3.14))
+      should_parse(from: '-3.14', to: s(:float, -3.14))
     end
   end
 
