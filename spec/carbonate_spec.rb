@@ -46,6 +46,7 @@ end
       let(:source) { '(def a 1;)' }
 
       before(:each) do
+        allow(STDERR).to receive(:puts)
         allow(Carbonate).to receive(:exit)
       end
 
@@ -66,6 +67,7 @@ end
       let(:source) { '(def a 1' }
 
       before(:each) do
+        allow(STDERR).to receive(:puts)
         allow(Carbonate).to receive(:exit)
       end
 
