@@ -100,11 +100,42 @@ end
         expect(User.instance_methods).to include(:name)
       end
 
+      it 'adds the loaded file path to $LOADED_FEATURES' do
+        Carbonate.require './fixtures/user'
+
+        absolute_path = Pathname.pwd + 'fixtures/user.crb'
+        expect($LOADED_FEATURES).to include(absolute_path.to_s)
+      end
+
       context 'with a wrong path' do
         it 'raises a LoadError' do
           expect {
             Carbonate.require './abc'
           }.to raise_error(LoadError, 'cannot load such file -- ./abc')
+        end
+
+        it 'does not add the file path to $LOADED_FEATURES' do
+          expect {
+            begin
+              Carbonate.require './abc'
+            rescue LoadError
+            end
+          }.not_to change { $LOADED_FEATURES }
+        end
+      end
+
+      context 'with a file already loaded' do
+        before(:each) do
+          Carbonate.require './fixtures/user'
+          @path.write('(defclass Post (defmethod title @title))')
+        end
+
+        it "won't load it again" do
+          expect {
+            Carbonate.require './fixtures/user'
+          }.not_to change { $LOADED_FEATURES }
+
+          expect(Object.const_defined?(:Post)).to be_falsy
         end
       end
     end
@@ -112,6 +143,7 @@ end
     after(:each) do
       @path.delete
       @path.dirname.delete
+      $LOADED_FEATURES.delete(@path.to_s)
     end
   end
 end

@@ -18,10 +18,13 @@ module Carbonate
       else
         fail NotImplementedError
       end
+      return false if $LOADED_FEATURES.include?(absolute_path.to_s)
 
       unless absolute_path.exist?
         fail LoadError, "cannot load such file -- #{filename}"
       end
+
+      $LOADED_FEATURES.push(absolute_path.to_s)
 
       ruby_code = process(absolute_path.read)
       Object.class_eval(ruby_code)
