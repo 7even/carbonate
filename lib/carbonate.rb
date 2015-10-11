@@ -21,6 +21,13 @@ module Carbonate
       true
     end
 
+    def require_relative(relative_path)
+      dir = Pathname.new(caller_locations(1, 1).first.path).dirname
+      absolute_path = dir + relative_path
+
+      require(absolute_path.to_s)
+    end
+
   private
     def with_trailing_newline(text)
       if text.end_with?(?\n)

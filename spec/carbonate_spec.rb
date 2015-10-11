@@ -153,4 +153,28 @@ end
       end
     end
   end
+
+  describe '.require_relative' do
+    context 'with an existing file' do
+      before(:each) do
+        @relative_path = '../fixtures/user.crb'
+        @path = Pathname.new('../' + @relative_path).expand_path(__FILE__)
+        @path.dirname.mkpath
+        @path.write('(defclass User (defmethod name "John"))' + ?\n)
+      end
+
+      it 'loads the file' do
+        Carbonate.require_relative @relative_path
+
+        expect(User).to be_a(Class)
+        expect(User.instance_methods).to include(:name)
+      end
+
+      after(:each) do
+        @path.delete
+        @path.dirname.delete
+        $LOADED_FEATURES.delete(@path.to_s)
+      end
+    end
+  end
 end
