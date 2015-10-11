@@ -10,21 +10,15 @@ module Carbonate
     end
 
     def require(filename)
-      absolute_path = if filename.start_with?('.')
-        Pathname.pwd + "#{filename}.crb"
-      else
-        fail NotImplementedError
-      end
+      absolute_path = find_required_file(filename)
+      fail LoadError, "cannot load such file -- #{filename}" if absolute_path.nil?
       return false if $LOADED_FEATURES.include?(absolute_path.to_s)
-
-      unless absolute_path.exist?
-        fail LoadError, "cannot load such file -- #{filename}"
-      end
-
-      $LOADED_FEATURES.push(absolute_path.to_s)
 
       ruby_code = process(absolute_path.read)
       Object.class_eval(ruby_code)
+
+      $LOADED_FEATURES.push(absolute_path.to_s)
+      true
     end
 
   private
@@ -33,6 +27,23 @@ module Carbonate
         text
       else
         text + ?\n
+      end
+    end
+
+    def find_required_file(filename)
+      ([Dir.pwd] + $LOAD_PATH).each do |path|
+        absolute_path = Pathname.new(path).join(append_extension(filename.to_s))
+        return absolute_path if absolute_path.exist?
+      end
+
+      nil
+    end
+
+    def append_extension(filename)
+      if filename.end_with?('.crb')
+        filename
+      else
+        "#{filename}.crb"
       end
     end
   end
