@@ -12,6 +12,21 @@ module Carbonate
       exit 1
     end
 
+    def require(filename)
+      absolute_path = if filename.start_with?('.')
+        Pathname.pwd + "#{filename}.crb"
+      else
+        fail NotImplementedError
+      end
+
+      unless absolute_path.exist?
+        fail LoadError, "cannot load such file -- #{filename}"
+      end
+
+      ruby_code = process(absolute_path.read)
+      Object.class_eval(ruby_code)
+    end
+
   private
     def with_trailing_newline(text)
       if text.end_with?(?\n)

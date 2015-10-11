@@ -84,4 +84,34 @@ end
       end
     end
   end
+
+  describe '.require' do
+    before(:each) do
+      @path = Pathname.pwd.join('fixtures/user.crb')
+      @path.dirname.mkpath
+      @path.write('(defclass User (defmethod name "John"))' + ?\n)
+    end
+
+    context 'with a filename starting with a dot' do
+      it 'searches for the file in current working directory' do
+        Carbonate.require './fixtures/user'
+
+        expect(User).to be_a(Class)
+        expect(User.instance_methods).to include(:name)
+      end
+
+      context 'with a wrong path' do
+        it 'raises a LoadError' do
+          expect {
+            Carbonate.require './abc'
+          }.to raise_error(LoadError, 'cannot load such file -- ./abc')
+        end
+      end
+    end
+
+    after(:each) do
+      @path.delete
+      @path.dirname.delete
+    end
+  end
 end
