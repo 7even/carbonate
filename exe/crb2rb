@@ -43,7 +43,12 @@ else
   source = STDIN.read
 end
 
-result = Carbonate.process(source)
+begin
+  result = Carbonate.process(source)
+rescue Carbonate::Parser::FormatError => e
+  STDERR.puts e.message
+  exit 1
+end
 
 if options.key?(:output)
   if options[:overwrite] || !options[:output].exist?

@@ -7,9 +7,6 @@ module Carbonate
     def process(source)
       ast = Parser.new.parse(source)
       with_trailing_newline(Unparser.unparse(ast))
-    rescue Parser::FormatError => e
-      STDERR.puts e.message
-      exit 1
     end
 
     def require(filename)
