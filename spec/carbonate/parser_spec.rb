@@ -213,6 +213,13 @@ RSpec.describe Carbonate::Parser do
         )
       )
     end
+
+    context 'of a constant' do
+      should_parse(
+        from: '(def DAYS-IN-WEEK 7)',
+        to: s(:casgn, nil, :DAYS_IN_WEEK, s(:int, 7))
+      )
+    end
   end
 
   context 'with an if statement' do

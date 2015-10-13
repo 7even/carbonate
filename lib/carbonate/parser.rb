@@ -121,9 +121,9 @@ module Carbonate
       token :WHILE,  /while/
       token :UNTIL,  /until/
 
-      token :CONST, /([A-Z][A-Za-z0-9]+\.)*[A-Z][A-Za-z0-9]+/ do |t|
+      token :CONST, /([A-Z][A-Za-z0-9_-]+\.)*[A-Z][A-Za-z0-9_-]+/ do |t|
         t.value = t.value.split('.').inject(nil) do |namespace, part|
-          Parser.s(:const, [namespace, part.to_sym])
+          Parser.s(:const, [namespace, Parser.identifier(part)])
         end
         t
       end
@@ -517,6 +517,12 @@ module Carbonate
     rule 'sexp : "(" DEF S form "." LVAR S form ")"' do |sexp, _, _, _, object, _, lvar, _, form, _|
       method_name = "#{lvar}=".to_sym
       sexp.value = s(:send, [object.value, method_name, form.value])
+    end
+
+    # constant assignment
+    #   (def DAYS-IN-WEEK 7)
+    rule 'sexp : "(" DEF S CONST S form ")"' do |sexp, _, _, _, const, _, form, _|
+      sexp.value = s(:casgn, [*const.value.children, form.value])
     end
 
     # method parameters list (in method definition)
