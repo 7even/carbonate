@@ -171,6 +171,29 @@ RSpec.describe Carbonate::Parser do
     )
   end
 
+  context 'with collection member writer' do
+    should_parse(
+      from: '(def hash[:key] value)',
+      to: s(:send,
+        s(:lvar, :hash),
+        :[]=,
+        s(:sym, :key),
+        s(:lvar, :value)
+      )
+    )
+
+    should_parse(
+      from: '(def array[1 2] 3)',
+      to: s(:send,
+        s(:lvar, :array),
+        :[]=,
+        s(:int, 1),
+        s(:int, 2),
+        s(:int, 3)
+      )
+    )
+  end
+
   context 'with true, false and nil' do
     should_parse(from: 'true', to: s(:true))
     should_parse(from: 'false', to: s(:false))

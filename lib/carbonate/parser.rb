@@ -595,6 +595,13 @@ parameter.value = s(:arg, [identifier.value])
       sexp.value = s(:send, [collection.value, :[], *arguments.value])
     end
 
+    # collection member writer
+    #   (def hash[:key] value)
+    #   (def array[1 2] 3)
+    rule 'sexp : "(" DEF S form "[" forms "]" S form ")"' do |sexp, _, _, _, collection, _, arguments, _, _, value, _|
+      sexp.value = s(:send, [collection.value, :[]=, *arguments.value, value.value])
+    end
+
     on_error -> (token) do
       if token.nil?
         fail FormatError, 'Input ends unexpectedly'
