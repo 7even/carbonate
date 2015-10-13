@@ -223,7 +223,7 @@ RSpec.describe Carbonate::Parser do
     end
   end
 
-  context 'with a variable assignment' do
+  context 'with an assignment' do
     context 'of a local variable' do
       should_parse(
         from: '(def username "7even")',
