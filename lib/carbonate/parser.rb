@@ -588,6 +588,13 @@ parameter.value = s(:arg, [identifier.value])
       end
     end
 
+    # collection member reader
+    #   hash[:key]
+    #   array[1, 5]
+    rule 'sexp : form "[" forms "]"' do |sexp, collection, _, arguments, _|
+      sexp.value = s(:send, [collection.value, :[], *arguments.value])
+    end
+
     on_error -> (token) do
       if token.nil?
         fail FormatError, 'Input ends unexpectedly'
