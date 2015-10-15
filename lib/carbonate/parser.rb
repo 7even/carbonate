@@ -553,6 +553,12 @@ module Carbonate
 parameter.value = s(:arg, [identifier.value])
     end
 
+    # a parameter can have a default value
+    #   [base 10]
+    rule 'parameter : "[" LVAR S form "]"' do |parameter, _, identifier, _, default_value, _|
+      parameter.value = s(:optarg, [identifier.value, default_value.value])
+    end
+
     # a parameter can be a splat
     rule 'parameter : "&" S LVAR' do |parameter, _, _, identifier|
       parameter.value = s(:restarg, [identifier.value])

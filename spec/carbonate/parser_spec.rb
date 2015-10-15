@@ -716,6 +716,22 @@ RSpec.describe Carbonate::Parser do
     )
 
     should_parse(
+      from: '(defmethod int-to-string [int [base 10]] (to-s int base))',
+      to: s(:def,
+        :int_to_string,
+        s(:args,
+          s(:arg, :int),
+          s(:optarg, :base, s(:int, 10)),
+        ),
+        s(:send,
+          s(:lvar, :int),
+          :to_s,
+          s(:lvar, :base)
+        )
+      )
+    )
+
+    should_parse(
       from: '(defmethod output [a b c & d] [a b c d])',
       to: s(:def,
         :output,
