@@ -110,6 +110,7 @@ module Carbonate
       token :DEFCLASS,  /defclass/
       token :DEFMODULE, /defmodule/
       token :DEFMETHOD, /defmethod/
+      token :DEF_OR,    /def-or/
       token :DEF,       /def/
       token :RETURN,    /return/
       token :SUPER,     /super/
@@ -506,10 +507,22 @@ module Carbonate
       sexp.value = s(:lvasgn, [var_name.value, form.value])
     end
 
+    # conditional local variable assignment
+    #   (def-or username "7even")
+    rule 'sexp : "(" DEF_OR S LVAR S form ")"' do |sexp, _, _, _, var_name, _, form, _|
+      sexp.value = s(:or_asgn, [s(:lvasgn, [var_name.value]), form.value])
+    end
+
     # instance variable assignment
     #   (def @age 30)
     rule 'sexp : "(" DEF S IVAR S form ")"' do |sexp, _, _, _, var_name, _, form, _|
       sexp.value = s(:ivasgn, [var_name.value, form.value])
+    end
+
+    # conditional instance variable assignment
+    #   (def-or @age 30)
+    rule 'sexp : "(" DEF_OR S IVAR S form ")"' do |sexp, _, _, _, var_name, _, form, _|
+      sexp.value = s(:or_asgn, [s(:ivasgn, [var_name.value]), form.value])
     end
 
     # object attribute assignment
@@ -517,6 +530,12 @@ module Carbonate
     rule 'sexp : "(" DEF S form "." LVAR S form ")"' do |sexp, _, _, _, object, _, lvar, _, form, _|
       method_name = "#{lvar}=".to_sym
       sexp.value = s(:send, [object.value, method_name, form.value])
+    end
+
+    # conditional object attribute assignment
+    #   (def-or user.name "John")
+    rule 'sexp : "(" DEF_OR S form "." LVAR S form ")"' do |sexp, _, _, _, object, _, lvar, _, form, _|
+      sexp.value = s(:or_asgn, [s(:send, [object.value, lvar.value]), form.value])
     end
 
     # constant assignment
@@ -606,6 +625,12 @@ parameter.value = s(:arg, [identifier.value])
     #   (def array[1 2] 3)
     rule 'sexp : "(" DEF S form "[" forms "]" S form ")"' do |sexp, _, _, _, collection, _, arguments, _, _, value, _|
       sexp.value = s(:send, [collection.value, :[]=, *arguments.value, value.value])
+    end
+
+    # conditional collection member writer
+    #   (def-or hash[:key] value)
+    rule 'sexp : "(" DEF_OR S form "[" forms "]" S form ")"' do |sexp, _, _, _, collection, _, arguments, _, _, value, _|
+      sexp.value = s(:or_asgn, [s(:send, [collection.value, :[], *arguments.value]), value.value])
     end
 
     on_error -> (token) do

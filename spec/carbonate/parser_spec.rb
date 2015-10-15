@@ -183,6 +183,18 @@ RSpec.describe Carbonate::Parser do
     )
 
     should_parse(
+      from: '(def-or hash[:key] value)',
+      to: s(:or_asgn,
+        s(:send,
+          s(:lvar, :hash),
+          :[],
+          s(:sym, :key)
+        ),
+        s(:lvar, :value)
+      )
+    )
+
+    should_parse(
       from: '(def array[1 2] 3)',
       to: s(:send,
         s(:lvar, :array),
@@ -229,12 +241,22 @@ RSpec.describe Carbonate::Parser do
         from: '(def username "7even")',
         to: s(:lvasgn, :username, s(:str, '7even'))
       )
+
+      should_parse(
+        from: '(def-or age 31)',
+        to: s(:or_asgn, s(:lvasgn, :age), s(:int, 31))
+      )
     end
 
     context 'of an instance variable' do
       should_parse(
         from: '(def @first-name "John")',
         to: s(:ivasgn, :@first_name, s(:str, 'John'))
+      )
+
+      should_parse(
+        from: '(def-or @first-name "John")',
+        to: s(:or_asgn, s(:ivasgn, :@first_name), s(:str, 'John'))
       )
     end
 
@@ -253,6 +275,17 @@ RSpec.describe Carbonate::Parser do
         to: s(:send,
           s(:ivar, :@user),
           :name=,
+          s(:str, 'John')
+        )
+      )
+
+      should_parse(
+        from: '(def-or user.name "John")',
+        to: s(:or_asgn,
+          s(:send,
+            s(:lvar, :user),
+            :name
+          ),
           s(:str, 'John')
         )
       )
