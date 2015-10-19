@@ -75,6 +75,8 @@ RSpec.describe Carbonate::Parser do
         s(:int, 3)
       )
     )
+
+    should_parse(from: '[]', to: s(:array))
   end
 
   context 'with hashes' do
@@ -91,6 +93,8 @@ RSpec.describe Carbonate::Parser do
         )
       )
     )
+
+    should_parse(from: '{}', to: s(:hash))
 
     context 'with odd number of elements' do
       it 'raises a FormatError' do
@@ -728,7 +732,7 @@ RSpec.describe Carbonate::Parser do
     )
 
     should_parse(
-      from: '(defmethod unnamed? (nil? @name))',
+      from: '(defmethod unnamed? [] (nil? @name))',
       to: s(:def,
         :unnamed?,
         s(:args),
