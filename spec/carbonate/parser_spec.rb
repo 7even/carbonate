@@ -224,17 +224,29 @@ RSpec.describe Carbonate::Parser do
   end
 
   context 'with a constant' do
-    context 'defined at top level' do
+    context 'unscoped' do
       should_parse(
         from: 'User',
         to: s(:const, nil, :User)
       )
     end
 
-    context 'nested in a namespace' do
+    context 'scoped' do
       should_parse(
         from: 'Carbonate.Parser',
         to: s(:const, s(:const, nil, :Carbonate), :Parser)
+      )
+    end
+
+    context 'top level' do
+      should_parse(
+        from: '.User',
+        to: s(:const, s(:cbase), :User)
+      )
+
+      should_parse(
+        from: '.Carbonate.Parser',
+        to: s(:const, s(:const, s(:cbase), :Carbonate), :Parser)
       )
     end
   end

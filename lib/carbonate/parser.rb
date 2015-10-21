@@ -122,8 +122,11 @@ module Carbonate
       token :WHILE,  /while/
       token :UNTIL,  /until/
 
-      token :CONST, /([A-Z][A-Za-z0-9_-]+\.)*[A-Z][A-Za-z0-9_-]+/ do |t|
-        t.value = t.value.split('.').inject(nil) do |namespace, part|
+      token :CONST, /\.?([A-Z][A-Za-z0-9_-]+\.)*[A-Z][A-Za-z0-9_-]+/ do |t|
+        parts = t.value.split('.').reject(&:empty?)
+        top_namespace = Parser.s(:cbase) if t.value.start_with?('.')
+
+        t.value = parts.inject(top_namespace) do |namespace, part|
           Parser.s(:const, [namespace, Parser.identifier(part)])
         end
         t
