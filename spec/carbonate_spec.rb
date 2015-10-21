@@ -48,7 +48,7 @@ end
       before(:each) do
         @path = Pathname.pwd.join('fixtures/user.crb')
         @path.dirname.mkpath
-        @path.write('(defclass User (defmethod name "John"))' + ?\n)
+        @path.write('(defclass User (defmethod name [] "John"))' + ?\n)
       end
 
       it 'searches for the file in current working directory' do
@@ -98,7 +98,7 @@ end
       context 'when a file is already loaded' do
         before(:each) do
           Carbonate.require './fixtures/user'
-          @path.write('(defclass Post (defmethod title @title))')
+          @path.write('(defclass Post (defmethod title [] @title))')
         end
 
         it "won't load it again" do
@@ -160,7 +160,7 @@ end
         @relative_path = '../fixtures/user.crb'
         @path = Pathname.new('../' + @relative_path).expand_path(__FILE__)
         @path.dirname.mkpath
-        @path.write('(defclass User (defmethod name "John"))' + ?\n)
+        @path.write('(defclass User (defmethod name [] "John"))' + ?\n)
       end
 
       it 'loads the file' do
