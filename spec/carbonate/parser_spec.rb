@@ -407,6 +407,26 @@ RSpec.describe Carbonate::Parser do
     )
   end
 
+  context 'with a rescue clause' do
+    should_parse(
+      from: '(try (File/read path) (rescue Errno.ENOENT e (@puts (message e)) (@raise)))',
+      to: s(:kwbegin,
+        s(:rescue,
+          s(:send, s(:const, nil, :File), :read, s(:lvar, :path)),
+          s(:resbody,
+            s(:array, s(:const, s(:const, nil, :Errno), :ENOENT)),
+            s(:lvasgn, :e),
+            s(:begin,
+              s(:send, nil, :puts, s(:send, s(:lvar, :e), :message)),
+              s(:send, nil, :raise)
+            )
+          ),
+          nil
+        )
+      )
+    )
+  end
+
   context 'with a method call' do
     context 'of an instance method' do
       should_parse(

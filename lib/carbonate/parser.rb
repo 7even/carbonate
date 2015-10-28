@@ -115,6 +115,9 @@ module Carbonate
       token :RETURN,    /return/
       token :SUPER,     /super/
       token :ZSUPER,    /zsuper/
+      token :TRY,       /try/
+      token :RESCUE,    /rescue/
+      token :ENSURE,    /ensure/
 
       token :IF,     /if/
       token :UNLESS, /unless/
@@ -456,6 +459,25 @@ module Carbonate
     #   (return 1)
     rule 'sexp : "(" RETURN S forms ")"' do |sexp, _, _, _, forms, _|
       sexp.value = s(:return, forms.value)
+    end
+
+    # try statement with a rescue clause
+    #   (try (File/read path)
+    #        (rescue Errno.ENOENT e
+    #                (@puts (message e))))
+    rule 'sexp : "(" TRY S forms S rescue ")"' do |sexp, _, _, _, forms, _, rescue_clause, _|
+      sexp.value = s(:kwbegin, [s(:rescue, [wrap_in_begin(forms.value), rescue_clause.value, nil])])
+    end
+
+    # rescue clause
+    rule 'rescue : "(" RESCUE S CONST S LVAR S forms ")"' do |rescue_clause, _, _, _, const, _, lvar, _, forms, _|
+      rescue_clause.value = s(:resbody,
+        [
+          s(:array, [const.value]),
+          s(:lvasgn, [lvar.value]),
+          wrap_in_begin(forms.value)
+        ]
+      )
     end
 
     # class definition w/o a parent class
