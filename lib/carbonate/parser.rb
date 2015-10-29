@@ -469,6 +469,13 @@ module Carbonate
       sexp.value = s(:kwbegin, [s(:rescue, [wrap_in_begin(forms.value), rescue_clause.value, nil])])
     end
 
+    # try statement with an ensure clause
+    #   (try (File/read path)
+    #        (ensure (@puts "Tries to read a file.")))
+    rule 'sexp : "(" TRY S forms S ensure ")"' do |sexp, _, _, _, forms, _, ensure_clause|
+      sexp.value = s(:kwbegin, [s(:ensure, [wrap_in_begin(forms.value), ensure_clause.value.children.first])])
+    end
+
     # rescue clause
     rule 'rescue : "(" RESCUE S CONST S LVAR S forms ")"' do |rescue_clause, _, _, _, const, _, lvar, _, forms, _|
       rescue_clause.value = s(:resbody,
@@ -478,6 +485,11 @@ module Carbonate
           wrap_in_begin(forms.value)
         ]
       )
+    end
+
+    # ensure clause
+    rule 'ensure : "(" ENSURE S forms ")"' do |ensure_clause, _, _, _, forms, _|
+      ensure_clause.value = s(:pseudo_ensure, [wrap_in_begin(forms.value)])
     end
 
     # class definition w/o a parent class

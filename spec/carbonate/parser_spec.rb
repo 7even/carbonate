@@ -407,24 +407,38 @@ RSpec.describe Carbonate::Parser do
     )
   end
 
-  context 'with a rescue clause' do
-    should_parse(
-      from: '(try (File/read path) (rescue Errno.ENOENT e (@puts (message e)) (@raise)))',
-      to: s(:kwbegin,
-        s(:rescue,
-          s(:send, s(:const, nil, :File), :read, s(:lvar, :path)),
-          s(:resbody,
-            s(:array, s(:const, s(:const, nil, :Errno), :ENOENT)),
-            s(:lvasgn, :e),
-            s(:begin,
-              s(:send, nil, :puts, s(:send, s(:lvar, :e), :message)),
-              s(:send, nil, :raise)
-            )
-          ),
-          nil
+  context 'with a try statement' do
+    context 'with a rescue clause' do
+      should_parse(
+        from: '(try (File/read path) (rescue Errno.ENOENT e (@puts (message e)) (@raise)))',
+        to: s(:kwbegin,
+          s(:rescue,
+            s(:send, s(:const, nil, :File), :read, s(:lvar, :path)),
+            s(:resbody,
+              s(:array, s(:const, s(:const, nil, :Errno), :ENOENT)),
+              s(:lvasgn, :e),
+              s(:begin,
+                s(:send, nil, :puts, s(:send, s(:lvar, :e), :message)),
+                s(:send, nil, :raise)
+              )
+            ),
+            nil
+          )
         )
       )
-    )
+    end
+
+    context 'with an ensure clause' do
+      should_parse(
+        from: '(try (File/read path) (ensure (@puts "Tried to read a file.")))',
+        to: s(:kwbegin,
+          s(:ensure,
+            s(:send, s(:const, nil, :File), :read, s(:lvar, :path)),
+            s(:send, nil, :puts, s(:str, 'Tried to read a file.'))
+          )
+        )
+      )
+    end
   end
 
   context 'with a method call' do
