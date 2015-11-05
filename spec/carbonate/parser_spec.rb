@@ -465,6 +465,30 @@ RSpec.describe Carbonate::Parser do
         )
       )
     end
+
+    context 'with rescue and ensure clauses' do
+      should_parse(
+        from: <<-CRB,
+(try (File/read path)
+     (rescue Errno.ENOENT e (@puts (message e)))
+     (ensure (@puts "Tried to read a file.")))
+        CRB
+        to: s(:kwbegin,
+          s(:ensure,
+            s(:rescue,
+              s(:send, s(:const, nil, :File), :read, s(:lvar, :path)),
+              s(:resbody,
+                s(:array, s(:const, s(:const, nil, :Errno), :ENOENT)),
+                s(:lvasgn, :e),
+                s(:send, nil, :puts, s(:send, s(:lvar, :e), :message))
+              ),
+              nil
+            ),
+            s(:send, nil, :puts, s(:str, 'Tried to read a file.'))
+          )
+        )
+      )
+    end
   end
 
   context 'with a method call' do

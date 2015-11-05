@@ -476,6 +476,15 @@ module Carbonate
       sexp.value = s(:kwbegin, [s(:ensure, [wrap_in_begin(forms.value), ensure_clause.value.children.first])])
     end
 
+    # try statement with rescue and ensure clauses
+    #   (try (File/read path)
+    #        (rescue Errno.ENOENT e (@puts (message e)))
+    #        (ensure (@puts "Tried to read a file.")))
+    rule 'sexp : "(" TRY S forms S rescues S ensure ")"' do |sexp, _, _, _, forms, _, rescue_clauses, _, ensure_clause, _|
+      rescue_subexpression = s(:rescue, [wrap_in_begin(forms.value), *rescue_clauses.value, nil])
+      sexp.value = s(:kwbegin, [s(:ensure, [rescue_subexpression, ensure_clause.value.children.first])])
+    end
+
     # multiple rescue clauses
     rule 'rescues : rescues S rescue | rescue' do |rescues, *rescues_array|
       rescues.value = without_spaces(rescues_array).flat_map(&:value)
