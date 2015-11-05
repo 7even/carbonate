@@ -428,6 +428,32 @@ RSpec.describe Carbonate::Parser do
       )
     end
 
+    context 'with multiple rescue clauses' do
+      should_parse(
+        from: <<-CRB,
+(try (Faraday/get path)
+     (rescue Faraday.ConnectionFailed e (@puts "Connection failed"))
+     (rescue Timeout.Error e (@puts "Request timed out")))
+        CRB
+        to: s(:kwbegin,
+          s(:rescue,
+            s(:send, s(:const, nil, :Faraday), :get, s(:lvar, :path)),
+            s(:resbody,
+              s(:array, s(:const, s(:const, nil, :Faraday), :ConnectionFailed)),
+              s(:lvasgn, :e),
+              s(:send, nil, :puts, s(:str, 'Connection failed'))
+            ),
+            s(:resbody,
+              s(:array, s(:const, s(:const, nil, :Timeout), :Error)),
+              s(:lvasgn, :e),
+              s(:send, nil, :puts, s(:str, 'Request timed out'))
+            ),
+            nil
+          )
+        )
+      )
+    end
+
     context 'with an ensure clause' do
       should_parse(
         from: '(try (File/read path) (ensure (@puts "Tried to read a file.")))',

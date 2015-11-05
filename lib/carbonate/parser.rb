@@ -465,8 +465,8 @@ module Carbonate
     #   (try (File/read path)
     #        (rescue Errno.ENOENT e
     #                (@puts (message e))))
-    rule 'sexp : "(" TRY S forms S rescue ")"' do |sexp, _, _, _, forms, _, rescue_clause, _|
-      sexp.value = s(:kwbegin, [s(:rescue, [wrap_in_begin(forms.value), rescue_clause.value, nil])])
+    rule 'sexp : "(" TRY S forms S rescues ")"' do |sexp, _, _, _, forms, _, rescue_clauses, _|
+      sexp.value = s(:kwbegin, [s(:rescue, [wrap_in_begin(forms.value), *rescue_clauses.value, nil])])
     end
 
     # try statement with an ensure clause
@@ -474,6 +474,11 @@ module Carbonate
     #        (ensure (@puts "Tries to read a file.")))
     rule 'sexp : "(" TRY S forms S ensure ")"' do |sexp, _, _, _, forms, _, ensure_clause|
       sexp.value = s(:kwbegin, [s(:ensure, [wrap_in_begin(forms.value), ensure_clause.value.children.first])])
+    end
+
+    # multiple rescue clauses
+    rule 'rescues : rescues S rescue | rescue' do |rescues, *rescues_array|
+      rescues.value = without_spaces(rescues_array).flat_map(&:value)
     end
 
     # rescue clause
