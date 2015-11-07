@@ -536,10 +536,34 @@ module Carbonate
 
     # method defition
     #   (defmethod full-name [] (join [first-name last-name]))
-    rule 'sexp : "(" DEFMETHOD S LVAR S parameters_list S forms ")"
-               | "(" DEFMETHOD S METHOD_NAME S parameters_list S forms ")"' do |sexp, _, _, _, method_name, _, params, _, forms, _|
-      method_body = wrap_in_begin(forms.value)
-      sexp.value = s(:def, [method_name.value.to_sym, params.value, method_body])
+    #   (defmethod read-file [path]
+    #     (File/read path)
+    #     (rescue Errno.ENOENT e (@puts "No file found."))
+    #     (ensure (@puts "Tried to read a file.")))
+    rule 'sexp : "(" DEFMETHOD S LVAR S parameters_list S method_body ")"
+               | "(" DEFMETHOD S METHOD_NAME S parameters_list S method_body ")"' do |sexp, _, _, _, method_name, _, params, _, method_body, _|
+      sexp.value = s(:def, [method_name.value.to_sym, params.value, method_body.value])
+    end
+
+    # method body consisting of forms
+    rule 'method_body : forms' do |method_body, forms|
+      method_body.value = wrap_in_begin(forms.value)
+    end
+
+    # method body consisting of forms and rescue clauses
+    rule 'method_body : forms S rescues' do |method_body, forms, _, rescue_clauses|
+      method_body.value = s(:rescue, [wrap_in_begin(forms.value), *rescue_clauses.value, nil])
+    end
+
+    # method body consisting of forms and an ensure clause
+    rule 'method_body : forms S ensure' do |method_body, forms, _, ensure_clause|
+      method_body.value = s(:ensure, [wrap_in_begin(forms.value), ensure_clause.value.children.first])
+    end
+
+    # method body consisting of forms and rescue and ensure clauses
+    rule 'method_body : forms S rescues S ensure' do |method_body, forms, _, rescue_clauses, _, ensure_clause|
+      rescue_subexpression = s(:rescue, [wrap_in_begin(forms.value), *rescue_clauses.value, nil])
+      method_body.value = s(:ensure, [rescue_subexpression, ensure_clause.value.children.first])
     end
 
     # lambda definition

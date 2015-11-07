@@ -890,6 +890,70 @@ RSpec.describe Carbonate::Parser do
         )
       )
     )
+
+    context 'with a rescue clause' do
+      should_parse(
+        from: '(defmethod read-file [path] (File/read path) (rescue Errno.ENOENT e (@puts "No file found.")))',
+        to: s(:def,
+          :read_file,
+          s(:args, s(:arg, :path)),
+          s(:rescue,
+            s(:send, s(:const, nil, :File), :read, s(:lvar, :path)),
+            s(:resbody,
+              s(:array,
+                s(:const, s(:const, nil, :Errno), :ENOENT)
+              ),
+              s(:lvasgn, :e),
+              s(:send, nil, :puts, s(:str, 'No file found.'))
+            ),
+            nil
+          )
+        )
+      )
+    end
+
+    context 'with an ensure clause' do
+      should_parse(
+        from: '(defmethod read-file [path] (File/read path) (ensure (@puts "Tried to read a file.")))',
+        to: s(:def,
+          :read_file,
+          s(:args, s(:arg, :path)),
+          s(:ensure,
+            s(:send, s(:const, nil, :File), :read, s(:lvar, :path)),
+            s(:send, nil, :puts, s(:str, 'Tried to read a file.'))
+          )
+        )
+      )
+    end
+
+    context 'with rescue and ensure clauses' do
+      should_parse(
+        from: <<-CRB,
+(defmethod read-file [path]
+  (File/read path)
+  (rescue Errno.ENOENT e (@puts "No file found."))
+  (ensure (@puts "Tried to read a file.")))
+      CRB
+        to: s(:def,
+          :read_file,
+          s(:args, s(:arg, :path)),
+          s(:ensure,
+            s(:rescue,
+              s(:send, s(:const, nil, :File), :read, s(:lvar, :path)),
+              s(:resbody,
+                s(:array,
+                  s(:const, s(:const, nil, :Errno), :ENOENT)
+                ),
+                s(:lvasgn, :e),
+                s(:send, nil, :puts, s(:str, 'No file found.'))
+              ),
+              nil
+            ),
+            s(:send, nil, :puts, s(:str, 'Tried to read a file.'))
+          )
+        )
+      )
+    end
   end
 
   context 'with a lambda definition' do
