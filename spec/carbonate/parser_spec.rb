@@ -534,7 +534,7 @@ RSpec.describe Carbonate::Parser do
 
       context 'with a form passed as a block' do
         should_parse(
-          from: '(map users % :name)',
+          from: '(map users # :name)',
           to: s(:send,
             s(:lvar, :users),
             :map,
@@ -543,7 +543,7 @@ RSpec.describe Carbonate::Parser do
         )
 
         should_parse(
-          from: '(each users % some-proc)',
+          from: '(each users # some-proc)',
           to: s(:send,
             s(:lvar, :users),
             :each,
@@ -554,7 +554,7 @@ RSpec.describe Carbonate::Parser do
 
       context 'with a block' do
         should_parse(
-          from: '(map users %([user] (upcase (name user))))',
+          from: '(map users #([user] (upcase (name user))))',
           to: s(:block,
             s(:send, s(:lvar, :users), :map),
             s(:args, s(:arg, :user)),
@@ -563,7 +563,7 @@ RSpec.describe Carbonate::Parser do
         )
 
         should_parse(
-          from: '(each-slice users 3 %([user] (@p user)))',
+          from: '(each-slice users 3 #([user] (@p user)))',
           to: s(:block,
             s(:send, s(:lvar, :users), :each_slice, s(:int, 3)),
             s(:args, s(:arg, :user)),
@@ -572,7 +572,7 @@ RSpec.describe Carbonate::Parser do
         )
 
         should_parse(
-          from: '(each-slice users 3 %([user] (@p (name user)) (@p (email user))))',
+          from: '(each-slice users 3 #([user] (@p (name user)) (@p (email user))))',
           to: s(:block,
             s(:send, s(:lvar, :users), :each_slice, s(:int, 3)),
             s(:args, s(:arg, :user)),
@@ -584,7 +584,7 @@ RSpec.describe Carbonate::Parser do
         )
 
         should_parse(
-          from: '(times 5 %(@puts "Hello"))',
+          from: '(times 5 #(@puts "Hello"))',
           to: s(:block,
             s(:send, s(:int, 5), :times),
             s(:args),
@@ -593,7 +593,7 @@ RSpec.describe Carbonate::Parser do
         )
 
         should_parse(
-          from: '(times 5 %((@puts "Hello") (@puts "Goodbye")))',
+          from: '(times 5 #((@puts "Hello") (@puts "Goodbye")))',
           to: s(:block,
             s(:send, s(:int, 5), :times),
             s(:args),
@@ -608,7 +608,7 @@ RSpec.describe Carbonate::Parser do
       context 'with two blocks' do
         it 'raises a FormatError' do
           expect {
-            subject.parse('(map users %([user] (name user)) %([user] (email user)))')
+            subject.parse('(map users #([user] (name user)) #([user] (email user)))')
           }.to raise_error(Carbonate::Parser::FormatError)
         end
       end
@@ -616,7 +616,7 @@ RSpec.describe Carbonate::Parser do
       context 'with block in non-last position' do
         it 'raises a FormatError' do
           expect {
-            subject.parse('(map users %([user] (name user)) 5)')
+            subject.parse('(map users #([user] (name user)) 5)')
           }.to raise_error(Carbonate::Parser::FormatError)
         end
       end
@@ -679,7 +679,7 @@ RSpec.describe Carbonate::Parser do
 
       context 'with a block' do
         should_parse(
-          from: '(User/find-each %([user] (@p (name user))))',
+          from: '(User/find-each #([user] (@p (name user))))',
           to: s(:block,
             s(:send, s(:const, nil, :User), :find_each),
             s(:args, s(:arg, :user)),
@@ -735,7 +735,7 @@ RSpec.describe Carbonate::Parser do
 
       context 'with a block' do
         should_parse(
-          from: '(@each %([element] (@p element)))',
+          from: '(@each #([element] (@p element)))',
           to: s(:block,
             s(:send, nil, :each),
             s(:args, s(:arg, :element)),
@@ -764,7 +764,7 @@ RSpec.describe Carbonate::Parser do
 
       context 'with a block' do
         should_parse(
-          from: '(User. %([user] (def user.name "John")))',
+          from: '(User. #([user] (def user.name "John")))',
           to: s(:block,
             s(:send, s(:const, nil, :User), :new),
             s(:args, s(:arg, :user)),
@@ -782,7 +782,7 @@ RSpec.describe Carbonate::Parser do
 
       context 'with a block' do
         should_parse(
-          from: '(super 123 %([object] (@puts object)))',
+          from: '(super 123 #([object] (@puts object)))',
           to: s(:block,
             s(:super, s(:int, 123)),
             s(:args, s(:arg, :object)),
@@ -797,7 +797,7 @@ RSpec.describe Carbonate::Parser do
 
       context 'with a block' do
         should_parse(
-          from: '(zsuper %([object] (@puts object)))',
+          from: '(zsuper #([object] (@puts object)))',
           to: s(:block,
             s(:zsuper),
             s(:args, s(:arg, :object)),
@@ -875,7 +875,7 @@ RSpec.describe Carbonate::Parser do
 
     should_parse(
       from: (<<-CRB),
-(defmethod each [% block]
+(defmethod each [# block]
   (@yield 1)
   (@yield 2)
   (@yield 3))

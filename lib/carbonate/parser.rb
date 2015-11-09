@@ -429,19 +429,19 @@ module Carbonate
     end
 
     # the last argument can be passed as a block
-    rule 'argument : "%" S form' do |argument, _, _, form|
+    rule 'argument : "#" S form' do |argument, _, _, form|
       argument.value = s(:block_pass, [form.value])
     end
 
     # the last argument can be an inline block
-    rule 'argument : "%" "(" parameters_list S forms ")"' do |argument, _, _, params, _, forms, _|
+    rule 'argument : "#" "(" parameters_list S forms ")"' do |argument, _, _, params, _, forms, _|
       block_body = wrap_in_begin(forms.value)
       argument.value = s(:pseudo_block, [params.value, block_body])
     end
 
     # the last argument can also be an inline block without parameters
-    rule 'argument : "%" form
-                   | "%" "(" forms ")"' do |argument, _, *forms_array|
+    rule 'argument : "#" form
+                   | "#" "(" forms ")"' do |argument, _, *forms_array|
       body = forms_array.reject do |element|
         ['(', ')'].include?(element.type)
       end.flat_map(&:value)
@@ -630,13 +630,13 @@ module Carbonate
     end
 
     # method parameters list with a block parameter at the end
-    #   [a b c % d]
+    #   [a b c # d]
     rule 'parameters_list : "[" parameters S block_parameter "]"' do |parameters_list, _, args, _, block_parameter, _|
       parameters_list.value = s(:args, [*args.value, block_parameter.value])
     end
 
     # method parameters list consisting of one block parameter
-    #   [% parameters]
+    #   [# parameters]
     rule 'parameters_list : "[" block_parameter "]"' do |parameters_list, _, block_parameter, _|
       parameters_list.value = s(:args, [block_parameter.value])
     end
@@ -663,7 +663,7 @@ parameter.value = s(:arg, [identifier.value])
     end
 
     # the last parameter can be a block
-    rule 'block_parameter : "%" S LVAR' do |block_parameter, _, _, identifier|
+    rule 'block_parameter : "#" S LVAR' do |block_parameter, _, _, identifier|
       block_parameter.value = s(:blockarg, [identifier.value])
     end
 
