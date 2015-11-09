@@ -1,28 +1,39 @@
 # Carbonate
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/carbonate`. To experiment with that code, run `bin/console` for an interactive prompt.
+Carbonate is a Lisp dialect heavily influenced by Clojure. It is transpiled into Ruby code.
 
-TODO: Delete this and the text above, and describe your gem
+Carbonate tries to cover all of Ruby's functionality while giving a more concise form to the code.
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
 ```ruby
+# Gemfile
 gem 'carbonate'
 ```
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install carbonate
+``` sh
+$ bundle
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+There are 2 options to run Carbonate code: convert it to Ruby statically and use the resulting `.rb` files as you normally would or evaluate Carbonate source files dynamically.
+
+### Converting from Carbonate to Ruby
+
+The gem ships with a `crb2rb` utility that converts Carbonate source code into Ruby source code. You can use it to convert a Carbonate file to a Ruby file:
+
+``` sh
+$ crb2rb < source.crb > target.rb
+# or
+$ crb2rb -i source.crb -o target.rb
+```
+
+### Using Carbonate sources directly
+
+Carbonate source code can be transpiled and instantly evaluated by Ruby code. This allows you to plug it in a Ruby application and use it right away.
+
+Carbonate gives 2 functions to transpile and evaluate Carbonate sources: `Carbonate.require` and `Carbonate.require_relative` - they work exactly like their counterparts from Ruby's `Kernel` but they are searching for a `.crb` file instead of a `.rb` one, and they transpile it to Ruby before evaluating.
 
 ## Development
 
@@ -32,10 +43,8 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/carbonate.
-
+Bug reports and pull requests are welcome on GitHub at https://github.com/7even/carbonate.
 
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
