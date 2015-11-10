@@ -337,6 +337,20 @@ RSpec.describe Carbonate::Parser do
         )
       )
     end
+
+    context 'with a do expression' do
+      should_parse(
+        from: '(if (valid? user) (do (save user) (@puts (name user))))',
+        to: s(:if,
+          s(:send, s(:lvar, :user), :valid?),
+          s(:begin,
+            s(:send, s(:lvar, :user), :save),
+            s(:send, nil, :puts, s(:send, s(:lvar, :user), :name))
+          ),
+          nil
+        )
+      )
+    end
   end
 
   context 'with an unless statement' do

@@ -119,6 +119,7 @@ module Carbonate
       token :RESCUE,    /rescue/
       token :ENSURE,    /ensure/
 
+      token :DO,     /do/
       token :IF,     /if/
       token :UNLESS, /unless/
       token :CASE,   /case/
@@ -273,6 +274,12 @@ module Carbonate
     # multiple S-expressions
     rule 'sexps : sexps S sexp | sexp' do |sexps, *sexps_array|
       sexps.value = without_spaces(sexps_array).flat_map(&:value)
+    end
+
+    # do statement - combines several forms into one
+    # so you can fit several statements in a place for just one
+    rule 'sexp : "(" DO S forms ")"' do |sexp, _, _, _, forms, _|
+      sexp.value = s(:begin, forms.value)
     end
 
     # if statement

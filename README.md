@@ -17,7 +17,7 @@ $ bundle
 
 ## Usage
 
-There are 2 options to run Carbonate code: convert it to Ruby statically and use the resulting `.rb` files as you normally would or evaluate Carbonate source files dynamically.
+Currently there are 2 ways to run Carbonate code: convert it to Ruby statically and use the resulting `.rb` files as you normally would or evaluate Carbonate source files dynamically.
 
 ### Converting from Carbonate to Ruby
 
