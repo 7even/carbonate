@@ -125,6 +125,8 @@ module Carbonate
       token :CASE,   /case/
       token :WHILE,  /while/
       token :UNTIL,  /until/
+      token :AND,    /and/
+      token :OR,     /or/
 
       token :CONST, /\.?([A-Z][A-Za-z0-9_-]+\.)*[A-Z][A-Za-z0-9_-]+/ do |t|
         parts = t.value.split('.').reject(&:empty?)
@@ -687,16 +689,22 @@ parameter.value = s(:arg, [identifier.value])
     # operator
     rule 'operator : "+" | "-" | "*" | "/" | "%" | "*" "*"
                    | "=" | "!" "=" | "<" | ">" | "<" "=" | ">" "=" | "<" "=" ">" | "=" "=" "="
-                   | "&" | "|" | "^" | "~" | "<" "<" | ">" ">"
-                   | "&" "&" | "|" "|" | "!"' do |operator, *operator_chars|
+                   | "&" | "|" | "^" | "~" | "<" "<" | ">" ">" | "!"' do |operator, *operator_chars|
       operator_name = operator_chars.map(&:value).join
 
-      operator.value = case operator_name
-      when '='  then :==
-      when '&&' then :and
-      when '||' then :or
-      else           operator_name.to_sym
+      operator.value = if operator_name == '='
+        :==
+      else
+        operator_name.to_sym
       end
+    end
+
+    # logical 'and' & 'or'
+    #   (and a b)
+    #   (or a b)
+    rule 'sexp : "(" AND S forms ")"
+               | "(" OR S forms ")"' do |sexp, _, operator, _, forms, _|
+      sexp.value = s(operator.value, forms.value)
     end
 
     # collection member reader

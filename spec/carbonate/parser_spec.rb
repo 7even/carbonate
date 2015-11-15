@@ -126,32 +126,40 @@ RSpec.describe Carbonate::Parser do
   end
 
   context 'with operators' do
-    should_parse(from: '(+ 2 2)',  to: s(:send, s(:int, 2), :+, s(:int, 2)))
-    should_parse(from: '(- 2 1)',  to: s(:send, s(:int, 2), :-, s(:int, 1)))
-    should_parse(from: '(* 2 3)',  to: s(:send, s(:int, 2), :*, s(:int, 3)))
-    should_parse(from: '(/ 6 2)',  to: s(:send, s(:int, 6), :/, s(:int, 2)))
-    should_parse(from: '(% 7 3)',  to: s(:send, s(:int, 7), :%, s(:int, 3)))
-    should_parse(from: '(** 2 8)', to: s(:send, s(:int, 2), :**, s(:int, 8)))
+    context 'arithmetic' do
+      should_parse(from: '(+ 2 2)',  to: s(:send, s(:int, 2), :+, s(:int, 2)))
+      should_parse(from: '(- 2 1)',  to: s(:send, s(:int, 2), :-, s(:int, 1)))
+      should_parse(from: '(* 2 3)',  to: s(:send, s(:int, 2), :*, s(:int, 3)))
+      should_parse(from: '(/ 6 2)',  to: s(:send, s(:int, 6), :/, s(:int, 2)))
+      should_parse(from: '(% 7 3)',  to: s(:send, s(:int, 7), :%, s(:int, 3)))
+      should_parse(from: '(** 2 8)', to: s(:send, s(:int, 2), :**, s(:int, 8)))
+    end
 
-    should_parse(from: '(= x y)',   to: s(:send, s(:lvar, :x), :==, s(:lvar, :y)))
-    should_parse(from: '(!= x y)',  to: s(:send, s(:lvar, :x), :!=, s(:lvar, :y)))
-    should_parse(from: '(< 1 2)',   to: s(:send, s(:int, 1), :<, s(:int, 2)))
-    should_parse(from: '(> 2 1)',   to: s(:send, s(:int, 2), :>, s(:int, 1)))
-    should_parse(from: '(>= 2 2)',  to: s(:send, s(:int, 2), :>=, s(:int, 2)))
-    should_parse(from: '(<= 2 2)',  to: s(:send, s(:int, 2), :<=, s(:int, 2)))
-    should_parse(from: '(<=> a b)', to: s(:send, s(:lvar, :a), :<=>, s(:lvar, :b)))
-    should_parse(from: '(=== a b)', to: s(:send, s(:lvar, :a), :===, s(:lvar, :b)))
+    context 'comparison' do
+      should_parse(from: '(= x y)',   to: s(:send, s(:lvar, :x), :==, s(:lvar, :y)))
+      should_parse(from: '(!= x y)',  to: s(:send, s(:lvar, :x), :!=, s(:lvar, :y)))
+      should_parse(from: '(< 1 2)',   to: s(:send, s(:int, 1), :<, s(:int, 2)))
+      should_parse(from: '(> 2 1)',   to: s(:send, s(:int, 2), :>, s(:int, 1)))
+      should_parse(from: '(>= 2 2)',  to: s(:send, s(:int, 2), :>=, s(:int, 2)))
+      should_parse(from: '(<= 2 2)',  to: s(:send, s(:int, 2), :<=, s(:int, 2)))
+      should_parse(from: '(<=> a b)', to: s(:send, s(:lvar, :a), :<=>, s(:lvar, :b)))
+      should_parse(from: '(=== a b)', to: s(:send, s(:lvar, :a), :===, s(:lvar, :b)))
+    end
 
-    should_parse(from: '(& 1 3)',  to: s(:send, s(:int, 1), :&, s(:int, 3)))
-    should_parse(from: '(| 1 3)',  to: s(:send, s(:int, 1), :|, s(:int, 3)))
-    should_parse(from: '(^ 1 2)',  to: s(:send, s(:int, 1), :^, s(:int, 2)))
-    should_parse(from: '(~ 3)',    to: s(:send, s(:int, 3), :~))
-    should_parse(from: '(<< 2 4)', to: s(:send, s(:int, 2), :<<, s(:int, 4)))
-    should_parse(from: '(>> 4 1)', to: s(:send, s(:int, 4), :>>, s(:int, 1)))
+    context 'binary' do
+      should_parse(from: '(& 1 3)',  to: s(:send, s(:int, 1), :&, s(:int, 3)))
+      should_parse(from: '(| 1 3)',  to: s(:send, s(:int, 1), :|, s(:int, 3)))
+      should_parse(from: '(^ 1 2)',  to: s(:send, s(:int, 1), :^, s(:int, 2)))
+      should_parse(from: '(~ 3)',    to: s(:send, s(:int, 3), :~))
+      should_parse(from: '(<< 2 4)', to: s(:send, s(:int, 2), :<<, s(:int, 4)))
+      should_parse(from: '(>> 4 1)', to: s(:send, s(:int, 4), :>>, s(:int, 1)))
+    end
 
-    should_parse(from: '(&& a b)', to: s(:send, s(:lvar, :a), :and, s(:lvar, :b)))
-    should_parse(from: '(|| a b)', to: s(:send, s(:lvar, :a), :or, s(:lvar, :b)))
-    should_parse(from: '(! x)',    to: s(:send, s(:lvar, :x), :!))
+    context 'logic' do
+      should_parse(from: '(and a b)', to: s(:and,  s(:lvar, :a), s(:lvar, :b)))
+      should_parse(from: '(or a b)',  to: s(:or,   s(:lvar, :a), s(:lvar, :b)))
+      should_parse(from: '(! x)',     to: s(:send, s(:lvar, :x), :!))
+    end
   end
 
   context 'with collection member reader' do
