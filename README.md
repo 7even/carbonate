@@ -71,9 +71,73 @@ Carbonate source code can be transpiled and instantly evaluated by Ruby code. Th
 
 Carbonate gives 2 functions to transpile and evaluate Carbonate sources: `Carbonate.require` and `Carbonate.require_relative` - they work exactly like their counterparts from Ruby's `Kernel` but they are searching for a `.crb` file instead of a `.rb` one, and they transpile it to Ruby before evaluating.
 
+## Syntax
+
+### Literal values
+
+Numbers in Carbonate look exactly like they do in Ruby:
+
+``` clojure
+127
+-32
+3.14
+```
+
+Strings are always double-quoted and support all the usual control characters like `\n` and `\t`. Double quotes have to be escaped with a backslash. String interpolation is not supported.
+
+``` clojure
+"Hello world!"
+"Line 1\nLine 2\n\tIndented line"
+"Yukihiro \"Matz\" Matsumoto"
+```
+
+Symbols look similarly to Ruby symbols but use dashes (`-`) instead of underscores (`_`):
+
+``` clojure
+:north
+:user-name
+:exists?
+```
+
+Regular expressions are written as double-quoted strings prefixed with a pound sign (`#`). Like strings, they support control characters and require you to escape double quotes.
+
+``` clojure
+#"[A-Za-z]+"
+```
+
+Arrays are enclosed within brackets (`[]`) but do not require commas between elements. In fact, comma is treated as a whitespace character in Carbonate - you can use it but you don't have to.
+
+``` clojure
+[1 2 3]
+["Yukihiro Matsumoto" "Rich Hickey"]
+```
+
+Hashes are represented by key-value pairs inside curly brackets (`{}`). In contrast to Ruby, there are no delimiters between a key and a value. Separating pairs with commas can sometimes be useful to keep readability.
+
+``` clojure
+{:type :book
+ :title "SICP"
+ :authors ["Harold Abelson" "Gerald Jay Sussman" "Julie Sussman"]}
+```
+
+Sets are also enclosed within curly brackets but prefixed with a pound sign.
+
+``` clojure
+#{"one" "two" "three"}
+```
+
+Be sure to `require 'set'` to use them - sets live in a standard library package in Ruby (read on to learn how to call methods like `require` in Carbonate).
+
+Ranges look exactly like in Ruby - values separated with two dots for inclusive ranges and values separated with three dots for exclusive ones:
+
+``` clojure
+"a".."z"
+0...10
+```
+
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake[ spec]` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
