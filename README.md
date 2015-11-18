@@ -4,9 +4,45 @@ Carbonate is a Lisp dialect heavily influenced by Clojure. It is transpiled into
 
 Carbonate tries to cover all of Ruby's functionality while giving a more concise form to the code.
 
+Here's what it looks like:
+
+``` clojure
+(defclass User
+  (defmethod initialize [first-name last-name email]
+    (def @first-name first-name)
+    (def @last-name last-name)
+    (def @email email))
+  (defmethod full-name []
+    (join [@first_name @last_name]))
+  (defmethod each-name []
+    (each [@first-name @last-name] #([name] (@yield name)))))
+```
+
+The code above is equvalent to the following ruby:
+
+``` ruby
+class User
+  def initialize(first_name, last_name, email)
+    @first_name = first_name
+    @last_name  = last_name
+    @email      = email
+  end
+
+  def full_name
+    [@first_name, @last_name].join
+  end
+
+  def each_name
+    [@first_name, @last_name].each do |name|
+      yield name
+    end
+  end
+end
+```
+
 ## Installation
 
-```ruby
+``` ruby
 # Gemfile
 gem 'carbonate'
 ```
