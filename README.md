@@ -105,6 +105,8 @@ Regular expressions are written as double-quoted strings prefixed with a pound s
 #"[A-Za-z]+"
 ```
 
+`true`, `false`, and `nil` are the same as in Ruby.
+
 Arrays are enclosed within brackets (`[]`) but do not require commas between elements. In fact, comma is treated as a whitespace character in Carbonate - you can use it but you don't have to.
 
 ``` clojure
