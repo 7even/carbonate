@@ -135,6 +135,46 @@ Ranges look exactly like in Ruby - values separated with two dots for inclusive 
 0...10
 ```
 
+### Calling functions/methods
+
+In Lisp function calls are written down using prefix notation in S-expressions; basically this means that every operation is a list of elements enclosed within parentheses where the first element represents the function and all the other elements are it's arguments.
+
+Here's some basic arithmetic:
+
+``` clojure
+(+ 2 2)
+(- 2 1)
+(* 2 3)
+```
+
+Of course S-expressions can be nested:
+
+``` clojure
+(/ (* 3 4) 2)
+(** (- 4 2) 3)
+```
+
+Comparison operators also mirror the Ruby ones with an exception of equality - it is represented with a single `=`:
+
+``` clojure
+(= x y)
+(!= x y)
+(< 1 2)
+(> 2 1)
+(>= 2 2)
+(<= 2 2)
+(<=> a b)
+(=== a b)
+```
+
+Binary operators `&`, `|`, `^`, `~`, `<<` and `>>` follow their Ruby counterparts. Logic operators, on the other hand, are slightly changed:
+
+``` clojure
+(and (= x y) (!= x z))
+(or (> x z) (> y z))
+(! false)
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake[ spec]` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
