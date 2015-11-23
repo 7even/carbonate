@@ -237,6 +237,48 @@ user[:name]
 
 Both attribute and collection member writers support conditional assignment with the aforementioned `def-or`.
 
+### Conditional statements
+
+Almost any code contains conditional execution - you won't go far without `if` & `unless` statements so here they are:
+
+``` clojure
+(if (> 2 1) "2 is greater" "1 is greater")
+(if (= x 5) "x is 5")
+(unless (>= age 18) "too young")
+```
+
+As you can see from the snippet above, `if` can be used in 2 variations: if you pass it a condition and 2 more forms (S-expressions, literal values, variables or anything that returns a value) the first form will be used for "truthy" condition value and the second for "falsy". If you just pass one form it will be used for the "truthy" case.
+
+`unless` doesn't have a 2-form mode - it's a bad practice anyway - so the only form after the condition will be used for the falsy condition.
+
+Carbonate also has a `case` statement:
+
+``` clojure
+(case x
+  1 "one"
+  2 "two")
+```
+
+Pretty self-explanatory. It also supports an else clause as the last form of the statement:
+
+``` clojure
+(case lang
+  "clojure" "great!"
+  "ruby" "cool"
+  "crap")
+```
+
+### Loop statements
+
+There are 2 main loop statements in Carbonate: `while` and `until`. Both of them take a condition as the first argument and the loop body as the second:
+
+``` clojure
+(while (< x 5)
+       (def x (+ x 1)))
+(until (>= x 5)
+       (def x (+ x 1)))
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake[ spec]` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
