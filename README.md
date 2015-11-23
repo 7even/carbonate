@@ -137,6 +137,18 @@ Ranges look exactly like in Ruby - values separated with two dots for inclusive 
 0...10
 ```
 
+Constants are written down using the same CamelCase'd words as in Ruby but `.` is used as a delimiter:
+
+``` clojure
+Carbonate.Parser
+```
+
+Explicit top-level constants are prefixed with `.` (exactly like they are with `::` in Ruby):
+
+``` clojure
+.Hash
+```
+
 The current object known as `self` in Ruby is written down as `@` in Carbonate.
 
 ### Calling functions/methods
@@ -177,20 +189,6 @@ Binary operators `&`, `|`, `^`, `~`, `<<` and `>>` follow their Ruby counterpart
 (and (= x y) (!= x z))
 (or (> x z) (> y z))
 (! false)
-```
-
-### Constants
-
-Constants are written down using the same CamelCase'd words as in Ruby but `.` is used as a delimiter:
-
-``` clojure
-Carbonate.Parser
-```
-
-Explicit top-level constants are prefixed with `.` (exactly like they are with `::` in Ruby):
-
-``` clojure
-.Hash
 ```
 
 ### Variables and assignment
