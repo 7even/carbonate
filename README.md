@@ -177,6 +177,20 @@ Binary operators `&`, `|`, `^`, `~`, `<<` and `>>` follow their Ruby counterpart
 (! false)
 ```
 
+### Constants
+
+Constants are written down using the same CamelCase'd words as in Ruby but `.` is used as a delimiter:
+
+``` clojure
+Carbonate.Parser
+```
+
+Explicit top-level constants are prefixed with `.` (exactly like they are with `::` in Ruby):
+
+``` clojure
+.Hash
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake[ spec]` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
