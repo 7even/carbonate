@@ -193,6 +193,52 @@ Explicit top-level constants are prefixed with `.` (exactly like they are with `
 .Hash
 ```
 
+### Variables and assignment
+
+Carbonate supports local and instance variables. They look like in Ruby but use `-` separator instead of `_`:
+
+``` clojure
+local-variable
+@instance-variable
+```
+
+You can assign a value to a variable using `def` keyword:
+
+``` clojure
+(def a 1)
+(def @age 35)
+```
+
+This also works for constants:
+
+``` clojure
+(def DAYS-IN-WEEK 7)
+```
+
+Carbonate also supports the so-called conditional assignment (`||=` in Ruby) using `def-or` keyword:
+
+``` clojure
+(def-or name "Steve")
+(def-or @city "NYC")
+```
+
+(This is not supported with constants for obvious reasons)
+
+There are a few more special cases. First you can assign a value to an object's attribute (like you would do with `user.name = 'John'` in Ruby):
+
+``` clojure
+(def user.name "John")
+```
+
+Second you can both read from and write to an array or a hash member using essentially the same syntax as in Ruby:
+
+``` clojure
+user[:name]
+(def user[:name] "John")
+```
+
+Both attribute and collection member writers support conditional assignment with the aforementioned `def-or`.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake[ spec]` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
