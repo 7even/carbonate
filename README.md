@@ -137,6 +137,8 @@ Ranges look exactly like in Ruby - values separated with two dots for inclusive 
 0...10
 ```
 
+The current object known as `self` in Ruby is written down as `@` in Carbonate.
+
 ### Calling functions/methods
 
 In Lisp function calls are written down using prefix notation in S-expressions; basically this means that every operation is a list of elements enclosed within parentheses where the first element represents the function and all the other elements are it's arguments.
