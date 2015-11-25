@@ -279,6 +279,130 @@ There are 2 main loop statements in Carbonate: `while` and `until`. Both of them
        (def x (+ x 1)))
 ```
 
+### Calling methods
+
+The most common construct in Ruby code is a method call. Carbonate allows you to call a method within an S-expression consisting of the method name and the receiver object:
+
+``` clojure
+(name user)
+```
+
+This is equivalent to the following Ruby:
+
+``` ruby
+user.name
+```
+
+*(all Carbonate snippets are followed by equivalent Ruby snippets later on)*
+
+If you need to pass some arguments to a method you do so after the receiver:
+
+``` clojure
+(include? [1 2 3] 4)
+```
+
+``` ruby
+[1, 2, 3].include?(4)
+```
+
+Carbonate supports splat arguments - if you have some `Enumerable` collection you can pass it to the method as several separate arguments. Ruby uses `*` for that goal, Carbonate uses `&` (note that `&` and the argument are separated by space):
+
+``` clojure
+(add-tags article & tags)
+```
+
+``` ruby
+article.add_tags(*tags)
+```
+
+Class methods are invoked a little differently - the method name is prefixed with the class name separated with `/`, and all following elements are method's arguments:
+
+``` clojure
+(User/count)
+(User/find-by {:first-name "John"})
+```
+
+``` ruby
+User.count
+User.find_by(first_name: 'John')
+```
+
+Method calls without an explicit receiver (which are implicitly called on `self`) are written with a method name prefixed by `@`:
+
+``` clojure
+(@attr-reader :first-name)
+```
+
+``` ruby
+attr_reader :first_name
+```
+
+Carbonate offers a special syntax for class constructor calls - it looks like a class name followed by a dot:
+
+``` clojure
+(User. {:name "John"})
+```
+
+``` ruby
+User.new(name: 'John')
+```
+
+Another special case is `super` - a call to parent class' respective method:
+
+``` clojure
+(super)
+(super "parameter")
+```
+
+``` ruby
+super()
+super('parameter')
+```
+
+The tricky part here is a call to `super` with implicit parameters - as you may know, calling `super` without parameters and without parentheses in Ruby actually passes it all the parameters passed to the enclosing method, and if you need to force `super` call without parameters you have to write `super()`. The latter is written as just `(super)` in Carbonate and the former is `(zsuper)` (Zero-arity super).
+
+Like in Ruby, you can pass a block to a method - it is enclosed within parentheses prefixed with `#`, and the first element inside the parentheses is the block parameters list:
+
+``` clojure
+(map users #([user] (upcase (name user))))
+```
+
+``` ruby
+users.map do |user|
+  user.name.upcase
+end
+```
+
+You don't have to specify an empty parameters list if your block has no parameters - just type your block body inside `#(...)`:
+
+``` clojure
+(times 5 #(@puts "Hello"))
+```
+
+``` ruby
+5.times { puts 'Hello' }
+```
+
+If you want to use the `Symbol#to_proc` trick you can just pass the symbol after `#` (like `&`, it needs to be separated from the following element with a space):
+
+``` clojure
+(map users # :name)
+```
+
+``` ruby
+users.map(&:name)
+```
+
+This works with plain procs too:
+
+``` clojure
+(each users # some-proc)
+```
+
+``` ruby
+users.each(&some_proc)
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake[ spec]` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
