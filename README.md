@@ -403,6 +403,93 @@ This works with plain procs too:
 users.each(&some_proc)
 ```
 
+### Defining methods
+
+A method definition consists of the `defmethod` keyword, then the name of the method, then the parameters list and the method body. As usual, all the identifiers (method name, parameters and variables) use `-` instead of `_`. It looks like this:
+
+``` clojure
+(defmethod full-name []
+  (join [@first-name @last-name]))
+```
+
+``` ruby
+def full_name
+  [@first_name, @last_name].join
+end
+```
+
+The parameters list supports splat arguments and blocks with basically the same syntax as in method invocation:
+
+``` clojure
+(defmethod iterate [a b c & d # block]
+  (@puts a b c d)
+  (@yield a)
+  (@yield b)
+  (@yield c)
+  (each d # block))
+```
+
+``` ruby
+def iterate(a, b, c, *d, &block)
+  puts a, b, c, d
+  yield a
+  yield b
+  yield c
+  d.each(&block)
+end
+```
+
+Carbonate also supports default parameter values - just put the parameter name with a default value inside the brackets:
+
+``` clojure
+(defmethod int-to-string [int [base 10]]
+  (to-s int base))
+```
+
+``` ruby
+def int_to_string(int, base = 10)
+  int.to_s(base)
+end
+```
+
+If you need to use a rescue clause inside your method you can just put it at the end of the method body:
+
+``` clojure
+(defmethod read-file [path]
+  (File/read path)
+  (rescue Errno.ENOENT e
+    (@puts "No file found.")))
+```
+
+``` ruby
+def read_file(path)
+  File.read(path)
+rescue Errno::ENOENT => e
+  puts 'No file found.'
+end
+```
+
+*(you can have as many rescue clauses as you want - just be sure to keep them at the end of method body)*
+
+The ensure clause is available as well, you can put it after all rescue clauses:
+
+``` clojure
+(defmethod read-file [path]
+  (File/read path)
+  (rescue Errno.ENOENT e (@puts "No file found."))
+  (ensure (@puts "Tried to read a file.")))
+```
+
+``` ruby
+def read_file(path)
+  File.read(path)
+rescue Errno::ENOENT => e
+  puts 'No file found.'
+ensure
+  puts 'Tried to read a file.'
+end
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake[ spec]` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
