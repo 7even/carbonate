@@ -507,6 +507,34 @@ def name
 end
 ```
 
+### Lambdas
+
+Lambda definitions look a lot like method definitions - they have a parameters list and a body:
+
+``` clojure
+(-> [user] (email user))
+(-> [user] (@p user) (save user))
+```
+
+``` ruby
+-> (user) { user.email }
+
+-> (user) do
+  p user
+  user.save
+end
+```
+
+If the lambda doesn't have parameters you can omit them altogether:
+
+``` clojure
+(-> (@puts "Hello world!"))
+```
+
+``` ruby
+-> { puts 'Hello world!' }
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake[ spec]` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
