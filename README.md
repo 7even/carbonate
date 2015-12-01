@@ -452,6 +452,25 @@ def int_to_string(int, base = 10)
 end
 ```
 
+A return clause is used like this:
+
+``` clojure
+(defmethod nothing [] (return))
+(defmethod name [] (return "John"))
+```
+
+``` ruby
+def nothing
+  return
+end
+
+def name
+  return 'John'
+end
+```
+
+### Exception handling
+
 If you need to use a rescue clause inside your method you can just put it at the end of the method body:
 
 ``` clojure
@@ -471,7 +490,7 @@ end
 
 *(you can have as many rescue clauses as you want - just be sure to keep them at the end of method body)*
 
-The ensure clause is available as well, you can put it after all rescue clauses:
+The ensure clause is available as well, you can put it after all rescue clauses (or at the end of the method body if you don't need to rescue anything):
 
 ``` clojure
 (defmethod read-file [path]
@@ -490,22 +509,25 @@ ensure
 end
 ```
 
-A return clause is used like this:
+There are cases when you need to intercept an exception from an arbitrary piece of code, not just method; a `try` statement can help you with that:
 
 ``` clojure
-(defmethod nothing [] (return))
-(defmethod name [] (return "John"))
+(try (File/read path)
+     (rescue Errno.ENOENT e
+       (@puts (message e))
+       (@raise)))
 ```
 
 ``` ruby
-def nothing
-  return
-end
-
-def name
-  return 'John'
+begin
+  File.read(path)
+rescue Errno::ENOENT => e
+  puts e.message
+  raise
 end
 ```
+
+`try` allows you to put any number of `rescue` clauses and/or an `ensure` clause at the end, just like method bodies.
 
 ### Lambdas
 
