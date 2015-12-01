@@ -251,6 +251,15 @@ As you can see from the snippet above, `if` can be used in 2 variations: if you 
 
 `unless` doesn't have a 2-form mode - it's a bad practice anyway - so the only form after the condition will be used for the falsy condition.
 
+If you need to group several statements inside one `if` or `unless` statement you can use a `do` statement - it allows you to join several S-expressions into one:
+
+``` clojure
+(if (valid? user)
+    (do
+     (save user)
+     (@puts (name user))))
+```
+
 Carbonate also has a `case` statement:
 
 ``` clojure
