@@ -566,6 +566,80 @@ If the lambda doesn't have parameters you can omit them altogether:
 -> { puts 'Hello world!' }
 ```
 
+### Classes and modules
+
+No serious Ruby application can exist without classes and modules. Carbonate allows defining classes with `defclass` keyword:
+
+``` clojure
+(defclass User
+  (defmethod initialize [first-name last-name]
+    (def @first-name first-name)
+    (def @last-name last-name))
+  (defmethod full-name []
+    (join [@first-name @last-name])))
+```
+
+``` ruby
+class User
+  def initialize(first_name, last_name)
+    @first_name = first_name
+    @last_name  = last_name
+  end
+
+  def full_name
+    [@first_name, @last_name].join
+  end
+end
+```
+
+If you need to specify the parent class you can use an already familiar syntax:
+
+``` clojure
+(defclass User < Base
+  (@include Naming))
+```
+
+``` ruby
+class User < Base
+  include Naming
+end
+```
+
+Similarly a module can be defined with `defmodule`:
+
+``` clojure
+(defmodule Naming
+  (@attr-reader :first-name :last-name)
+  (defmethod full-name []
+    (join [first-name last-name])))
+```
+
+``` ruby
+module Naming
+  attr_reader :first_name, :last_name
+
+  def full_name
+    [first_name, last_name].join
+  end
+end
+```
+
+When you want to open up an object's singleton class you need `<<-`:
+
+``` clojure
+(<<- user
+     (defmethod name []
+       @name))
+```
+
+``` ruby
+class << user
+  def name
+    @name
+  end
+end
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake[ spec]` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
