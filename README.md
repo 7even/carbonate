@@ -314,7 +314,7 @@ If you need to pass some arguments to a method you do so after the receiver:
 [1, 2, 3].include?(4)
 ```
 
-Carbonate supports splat arguments - if you have some `Enumerable` collection you can pass it to the method as several separate arguments. Ruby uses `*` for that goal, Carbonate uses `&` (note that `&` and the argument are separated by space):
+Carbonate supports splat arguments - if you have some `Enumerable` collection you can pass it to the method as several separate arguments. Ruby uses `*` for that goal, Carbonate uses `&` (note that `&` and the argument are separated by a space):
 
 ``` clojure
 (add-tags article & tags)
@@ -461,7 +461,7 @@ def int_to_string(int, base = 10)
 end
 ```
 
-A return clause is used like this:
+A `return` clause is used like this:
 
 ``` clojure
 (defmethod nothing [] (return))
@@ -480,7 +480,7 @@ end
 
 ### Exception handling
 
-If you need to use a rescue clause inside your method you can just put it at the end of the method body:
+If you need to use a `rescue` clause inside your method you can just put it at the end of the method body:
 
 ``` clojure
 (defmethod read-file [path]
@@ -497,9 +497,9 @@ rescue Errno::ENOENT => e
 end
 ```
 
-*(you can have as many rescue clauses as you want - just be sure to keep them at the end of method body)*
+*(you can have as many `rescue` clauses as you want - just be sure to keep them at the end of method body)*
 
-The ensure clause is available as well, you can put it after all rescue clauses (or at the end of the method body if you don't need to rescue anything):
+The `ensure` clause is available as well, you can put it after all `rescue` clauses (or at the end of the method body if you don't need to rescue anything):
 
 ``` clojure
 (defmethod read-file [path]
@@ -656,7 +656,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/7even/carbonate.
+Bug reports and pull requests are welcome on GitHub at [7even/carbonate](https://github.com/7even/carbonate).
 
 ## License
 
