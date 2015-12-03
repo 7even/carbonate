@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Vsevolod Romashov']
   spec.email         = ['7@7vn.ru']
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
+  spec.summary       = %q{Clojure-inspired Lisp that compiles to Ruby}
+  spec.description   = %q{A Clojure-inspired Lisp dialect that aims to mirror full Ruby functionality. Includes a transpiler that can produce equivalent Ruby code or eval it right away.}
   spec.homepage      = 'https://github.com/7even/carbonate'
   spec.license       = 'MIT'
 
