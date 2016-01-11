@@ -13,7 +13,7 @@ Here's what it looks like:
     (def @last-name last-name)
     (def @email email))
   (defmethod full-name []
-    (join [@first_name @last_name]))
+    (join [@first-name @last-name]))
   (defmethod each-name []
     (each [@first-name @last-name] #([name] (@yield name)))))
 ```
